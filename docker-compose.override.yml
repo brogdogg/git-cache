@@ -1,0 +1,8 @@
+version: '3'
+
+services:
+  git-cache:
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - "8085:80"

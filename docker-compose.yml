@@ -1,0 +1,22 @@
+version: '3'
+
+services:
+  git-cache-data:
+    build:
+      context: .
+      dockerfile: git-cache-data/Dockerfile
+    volumes:
+      - git-cache-data-volume:/var/gitcache
+
+  git-cache:
+    image: gitcache
+    build:
+      context: .
+      dockerfile: git-cache/Dockerfile
+    volumes:
+      - git-cache-data-volume:/var/gitcache
+    ports:
+      - "8085:80"
+
+volumes:
+  git-cache-data-volume:
