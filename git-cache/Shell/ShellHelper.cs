@@ -33,7 +33,7 @@ namespace git_cache.Shell
       retval = process.StandardOutput.ReadToEnd();
       process.WaitForExit();
       if (null != isExitCodeFailure && isExitCodeFailure(process.ExitCode)) {
-        throw new InvalidProgramException("failed to execute the command successfully");
+        throw new InvalidProgramException($"failed to execute the command successfully; {process.StandardError.ReadToEnd()}");
       }
       return retval;
     } // end of function - Bash

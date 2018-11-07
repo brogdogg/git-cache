@@ -37,16 +37,21 @@ namespace git_cache.Git
       return $"git -C \"{local.Path}\" fetch --quiet".Bash();
     }
 
-    public static Task<string> FetchAsync(this LocalRepo local)
+    public static async Task<string> FetchAsync(this LocalRepo local)
     {
-      return Task.Run(() => Fetch(local));
+      await $"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.Url}\"".BashAsync();
+      return await $"git -C \"{local.Path}\" fetch --quiet".BashAsync();
     }
 
-    public static Task<string> UpdateLocalAsync(this LocalRepo local)
+    public static async Task<string> UpdateLocalAsync(this LocalRepo local)
     {
-      return FetchAsync(local)
-        .ContinueWith((output) => CloneAsync(local).Result, TaskContinuationOptions.OnlyOnRanToCompletion)
-        .ContinueWith((a) => a.Result, TaskContinuationOptions.OnlyOnFaulted);
+      if(!System.IO.Directory.Exists(local.Path)) {
+        local.CreateLocalDirectory();
+        await CloneAsync(local);
+      }
+      var output = await FetchAsync(local);
+      output = await CloneAsync(local);
+      return output;
     }
   }
 
