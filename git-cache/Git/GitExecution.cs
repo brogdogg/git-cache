@@ -45,12 +45,17 @@ namespace git_cache.Git
 
     public static async Task<string> UpdateLocalAsync(this LocalRepo local)
     {
-      if(!System.IO.Directory.Exists(local.Path)) {
-        local.CreateLocalDirectory();
-        await CloneAsync(local);
+      string output = null;
+      try
+      {
+        // First try to fetch the details...
+        output = await FetchAsync(local);
       }
-      var output = await FetchAsync(local);
-      output = await CloneAsync(local);
+      catch (Exception)
+      {
+        // If fetch failed, then we must need to clone everything!
+        output = await CloneAsync(local);
+      }
       return output;
     }
   }
