@@ -1,12 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
 using git_cache.Git;
 using Microsoft.Extensions.Configuration;
 using git_cache.Configuration;
 using System.Net.Http;
 using System.Threading.Tasks;
-using git_cache.Shell;
+using System.Diagnostics;
+using git_cache.Results;
 
 namespace git_cache.Controllers
 {
@@ -61,8 +61,9 @@ namespace git_cache.Controllers
     /// <param name="service">Service from git</param>
     /// <returns>JSON Result (for now)</returns>
     [HttpGet("{destinationServer}/{repositoryOwner}/{repository}/info/refs", Name = "Get")]
-    public async Task<JsonResult> GetAsync(string destinationServer, string repositoryOwner, string repository, [FromQuery]string service, [FromHeader]string authorization)
+    public async Task<ActionResult> GetAsync(string destinationServer, string repositoryOwner, string repository, [FromQuery]string service, [FromHeader]string authorization)
     {
+      ActionResult retval = null;
       // 1. Parse Authorization from headers, if exists
       // 2. Build remote repository information using auth
       RemoteRepo repo = new RemoteRepo(destinationServer, repositoryOwner, repository, Configuration.DisableHTTPS());
@@ -85,7 +86,16 @@ namespace git_cache.Controllers
       // 6. Is this an info request??
       //   6a. YES
       //     *. Update local contents
-      await GitExecution.UpdateLocalAsync(local);
+      try
+      {
+        await GitExecution.UpdateLocalAsync(local);
+        retval = new GitServiceAdvertisementResult(service, local);
+      }
+      catch(Exception exc)
+      {
+        Debug.WriteLine("Exception: " + exc);
+        retval = new StatusCodeResult(500);
+      }
       //client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("basic",)
       //     *. Set response headers
       //        Content-Type: application/x-${service}-advertisement
@@ -101,8 +111,39 @@ namespace git_cache.Controllers
       //     *. Do we have gzip?
       //        *. YES - write gzip contents to req
       //        *. NO  - write contents to req
-      var retval = Json(local.Path);
-      retval.StatusCode = 200;
+      return retval;
+    }
+
+    [HttpPost("{destinationServer}/{repositoryOwner}/{repository}/{service}", Name ="Post")]
+    public async Task<ActionResult> PostUploadPack(string destinationServer, string repositoryOwner, string repository, string service, [FromHeader]string authorization, [FromHeader(Name ="content-encoding")]string contentEncoding)
+    {
+      ActionResult retval = new OkResult();
+      RemoteRepo repo = new RemoteRepo(destinationServer, repositoryOwner, repository);
+      LocalRepo local = new LocalRepo(repo, new LocalConfiguration(Configuration));
+      if(null != authorization)
+      {
+        dynamic auth = ParseAuth(authorization);
+        switch(await AuthenticateAsync(repo, auth))
+        {
+          case 400:
+          case 401:
+          case 403:
+          case 404:
+            throw new HttpRequestException("Failed to authenticate with remote server");
+          case 200:
+          default:
+            break;
+        }
+      }
+      try
+      {
+        retval = new GitServiceResultResult(service, local, contentEncoding == "gzip");
+      }
+      catch (Exception exc)
+      {
+        Debug.WriteLine("Exception: " + exc);
+        retval = new StatusCodeResult(500);
+      }
       return retval;
     }
 
