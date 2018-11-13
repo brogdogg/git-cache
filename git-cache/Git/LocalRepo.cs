@@ -7,13 +7,21 @@ using System.Threading.Tasks;
 
 namespace git_cache.Git
 {
+    public class AuthInfo
+    {
+      public string Scheme { get; set; }
+      public string RawAuth { get; set; }
+      public byte[] Decoded { get; set; }
+      public string Encoded { get; set; }
+    }
   public class RemoteRepo
   {
     public string Server { get; set; } = null;
     public string Owner { get; set; } = null;
     public string Name { get; set; } = null;
     public string Url { get; private set; } = null;
-    public RemoteRepo(string server, string owner, string name, bool disableHTTPS = false)
+    public AuthInfo Auth { get; } = null;
+    public RemoteRepo(string server, string owner, string name, AuthInfo auth, bool disableHTTPS = false)
     {
       if(null == (Server = server))
         throw new ArgumentNullException("Must provide a property server name");
@@ -21,6 +29,7 @@ namespace git_cache.Git
         throw new ArgumentNullException("Must provide a valid owner name");
       if (null == (Name = name))
         throw new ArgumentNullException("Must provide a valid name for the repository");
+      Auth = auth;
 
       string protocol = disableHTTPS ? "http" : "https";
       Url = $"{protocol}://{server}/{owner}/{name}";

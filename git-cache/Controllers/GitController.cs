@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using System.Diagnostics;
 using git_cache.Results;
+using System.Text;
 
 namespace git_cache.Controllers
 {
@@ -30,9 +31,11 @@ namespace git_cache.Controllers
         throw new ArgumentNullException("A valid configuration must be provided");
     } // end of function - GitController
 
-    private object ParseAuth(string auth) {
+    private AuthInfo ParseAuth(string auth)
+    {
       var pair = auth.Split(" ");
-      return new {
+      return new AuthInfo
+      {
         Scheme = pair[0],
         RawAuth = auth,
         Decoded = Convert.FromBase64String(pair[1]),
@@ -40,13 +43,33 @@ namespace git_cache.Controllers
 
       };
     }
-    private async Task<int> AuthenticateAsync(RemoteRepo repo, dynamic auth){
+    private async Task<HttpResponseMessage> AuthenticateAsync(RemoteRepo repo)
+    {
       HttpClient client = new HttpClient();
       client.DefaultRequestHeaders.Accept.Clear();
-      client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(auth.Scheme, auth.Decoded);
+      if(null != repo.Auth)
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(repo.Auth.Scheme, Encoding.ASCII.GetString(repo.Auth.Decoded));
+      client.DefaultRequestHeaders.UserAgent.Add(
+        new System.Net.Http.Headers.ProductInfoHeaderValue("git", "1.0"));
       string url = $"{repo.Url}/info/refs?service=git-upload-pack";
       var resp = await client.GetAsync(url);
-      return (int)resp.StatusCode;
+      return resp;
+    }
+
+    private RemoteRepo BuildRemoteRepo(string destinationServer, string repoOwner, string repo, string authorization)
+    {
+      AuthInfo authInfo = null;
+      if (null != authorization)
+      {
+        authInfo = ParseAuth(authorization);
+      }
+      // 1. Parse Authorization from headers, if exists
+      // 2. Build remote repository information using auth
+      return new RemoteRepo(destinationServer,
+                            repoOwner,
+                            repo,
+                            authInfo,
+                            Configuration.DisableHTTPS());
     }
 
     // GET: api/Git/{server}/{repoOwner}/{repo}/info/refs?service={service}
@@ -64,25 +87,20 @@ namespace git_cache.Controllers
     public async Task<ActionResult> GetAsync(string destinationServer, string repositoryOwner, string repository, [FromQuery]string service, [FromHeader]string authorization)
     {
       ActionResult retval = null;
-      // 1. Parse Authorization from headers, if exists
-      // 2. Build remote repository information using auth
-      RemoteRepo repo = new RemoteRepo(destinationServer, repositoryOwner, repository, Configuration.DisableHTTPS());
+      var repo = BuildRemoteRepo(destinationServer, repositoryOwner, repository, authorization);
+      var resp = await AuthenticateAsync(repo);
+      switch ((int)resp.StatusCode)
+      {
+        case 401:
+        case 403:
+        case 404:
+          return new ForwardedResult(resp);
+        case 200: // OK
+        default:
+          break;
+      }
       // 3. Build local repository information using the remote respository info
       LocalRepo local = new LocalRepo(repo, new LocalConfiguration(Configuration));
-      if(null != authorization ) {
-        var authInfo = ParseAuth(authorization);
-        // 4. Authenticate with remote repository
-        switch(await AuthenticateAsync(repo, authInfo)){
-          case 401:
-          case 403:
-          case 404:
-            throw new HttpRequestException("Failed to authenticate");
-          case 200: // OK
-          default:
-            break;
-        }
-        // 5. If response code 200 all is fine... 4xx is failed authenticate
-      }
       // 6. Is this an info request??
       //   6a. YES
       //     *. Update local contents
@@ -91,7 +109,7 @@ namespace git_cache.Controllers
         await GitExecution.UpdateLocalAsync(local);
         retval = new GitServiceAdvertisementResult(service, local);
       }
-      catch(Exception exc)
+      catch (Exception exc)
       {
         Debug.WriteLine("Exception: " + exc);
         retval = new StatusCodeResult(500);
@@ -114,26 +132,23 @@ namespace git_cache.Controllers
       return retval;
     }
 
-    [HttpPost("{destinationServer}/{repositoryOwner}/{repository}/{service}", Name ="Post")]
-    public async Task<ActionResult> PostUploadPack(string destinationServer, string repositoryOwner, string repository, string service, [FromHeader]string authorization, [FromHeader(Name ="content-encoding")]string contentEncoding)
+    [HttpPost("{destinationServer}/{repositoryOwner}/{repository}/{service}", Name = "Post")]
+    public async Task<ActionResult> PostUploadPack(string destinationServer, string repositoryOwner, string repository, string service, [FromHeader]string authorization, [FromHeader(Name = "content-encoding")]string contentEncoding)
     {
       ActionResult retval = new OkResult();
-      RemoteRepo repo = new RemoteRepo(destinationServer, repositoryOwner, repository);
+      var repo = BuildRemoteRepo(destinationServer, repositoryOwner, repository, authorization);
       LocalRepo local = new LocalRepo(repo, new LocalConfiguration(Configuration));
-      if(null != authorization)
+      var resp = await AuthenticateAsync(repo);
+      switch ((int)resp.StatusCode)
       {
-        dynamic auth = ParseAuth(authorization);
-        switch(await AuthenticateAsync(repo, auth))
-        {
-          case 400:
-          case 401:
-          case 403:
-          case 404:
-            throw new HttpRequestException("Failed to authenticate with remote server");
-          case 200:
-          default:
-            break;
-        }
+        case 400:
+        case 401:
+        case 403:
+        case 404:
+          return new ForwardedResult(resp);
+        case 200:
+        default:
+          break;
       }
       try
       {
