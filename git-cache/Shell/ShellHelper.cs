@@ -1,4 +1,5 @@
-﻿using System;
+﻿using git_cache.IO;
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Text;
@@ -46,51 +47,84 @@ namespace git_cache.Shell
       };
       // This is no good, because if there is no newline, then we will not get this
       // event. We need a custom stream reader
-      process.OutputDataReceived += (o, args) =>
-      {
-        if (null != args && null != args.Data)
-        {
-          StreamWriter sw = new StreamWriter(outStream, System.Text.Encoding.ASCII, 8096, true);
-          retval += System.Text.Encoding.ASCII.GetByteCount(args.Data);
-          sw.WriteLine(args.Data);
-          sw.Flush();
-        }
-      };
       process.Start();
-      process.BeginOutputReadLine();
+      // Create an async reader on the basestream of the standard output stream
+      var stdoutReader = StartNewReader(process.StandardOutput.BaseStream,
+                                        outStream);
+
+      // If we were given an standard input writer action,
+      // we will setup to redirect the standard input for the process
       if(null != inputWriter)
       {
         inputWriter(process.StandardInput);
         process.StandardInput.Flush();
         process.StandardInput.Close();
-      }
+      } // end of if - input writer action provided
+
+      // Wait for the process to exit
       process.WaitForExit();
-      process.CancelOutputRead();
+      // Then wait for the standard output to dry up
+      stdoutReader.Wait();
+
+      // Then check for errors
       if(null != isExitCodeFailure && isExitCodeFailure(process.ExitCode))
       {
         throw new InvalidProgramException($"Failed to execute command; {process.StandardError.ReadToEnd()}");
-      }
-      else if (!process.StandardOutput.EndOfStream)
-      {
-        char[] buffer = new char[8096];
-        int bytesREad = 0;
-        StreamWriter sw = new StreamWriter(outStream, System.Text.Encoding.ASCII, 8096, true);
-        while((bytesREad = process.StandardOutput.Read(buffer, 0, buffer.Length)) > 0)
-        {
-          sw.Write(buffer, 0, bytesREad);
-          retval += bytesREad;
-        }
-      }
+      } // end of if - process exited with error
       return retval;
-    }
+    } // end of function - Bash
+
+    /// <summary>
+    /// Executes the bash command asynchronously.
+    /// </summary>
+    /// <param name="command">
+    /// Bash command to execute
+    /// </param>
+    /// <param name="isExitCodeFailure">
+    /// Functor to decide if the exit code is a failure or not
+    /// </param>
+    /// <returns>
+    /// Task for the execution
+    /// </returns>
     public static Task<string> BashAsync(this string command, Func<int, bool> isExitCodeFailure)
     {
       return Task.Run(() => Bash(command, isExitCodeFailure));
-    }
+    } // end of function - BashAsync
 
+    /// <summary>
+    /// Executes the bash command asynchronously
+    /// </summary>
+    /// <param name="command">
+    /// Command to execute
+    /// </param>
+    /// <remarks>
+    /// Assumes any exit code that is not zero is a failure
+    /// </remarks>
+    /// <returns>
+    /// Task for the execution
+    /// </returns>
     public static Task<string> BashAsync(this string command)
     {
       return Task.Run(() => Bash(command));
+    } // end of function - BashAsync
+
+    /// <summary>
+    /// Starts a new asynchronous StreamReader object on the specified stream
+    /// which forwards data to the destination stream
+    /// </summary>
+    /// <param name="stream"></param>
+    /// <param name="destinationStream"></param>
+    /// <returns></returns>
+    private static IO.StringStreamReader StartNewReader(Stream stream, Stream destinationStream)
+    {
+      return
+        IO.StringStreamReader.StartReader(stream,
+          (sender, args) =>
+          {
+            destinationStream.Write(args.Buffer, 0, args.ByteCount);
+            destinationStream.Flush();
+          },
+          false);
     }
 
   } // end of class - ShellHelper
