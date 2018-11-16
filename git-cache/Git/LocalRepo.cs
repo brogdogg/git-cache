@@ -11,7 +11,7 @@ namespace git_cache.Git
     {
       public string Scheme { get; set; }
       public string RawAuth { get; set; }
-      public byte[] Decoded { get; set; }
+      public string Decoded { get; set; }
       public string Encoded { get; set; }
     }
   public class RemoteRepo
@@ -20,6 +20,7 @@ namespace git_cache.Git
     public string Owner { get; set; } = null;
     public string Name { get; set; } = null;
     public string Url { get; private set; } = null;
+    public string GitUrl { get; }
     public AuthInfo Auth { get; } = null;
     public RemoteRepo(string server, string owner, string name, AuthInfo auth, bool disableHTTPS = false)
     {
@@ -33,6 +34,7 @@ namespace git_cache.Git
 
       string protocol = disableHTTPS ? "http" : "https";
       Url = $"{protocol}://{server}/{owner}/{name}";
+      GitUrl = auth == null ? Url : $"{protocol}://{auth.Decoded.ToString()}@{server}/{owner}/{name}";
     }
   }
 

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.Diagnostics;
 using git_cache.Results;
 using System.Text;
+using Newtonsoft.Json;
 
 namespace git_cache.Controllers
 {
@@ -31,6 +32,11 @@ namespace git_cache.Controllers
         throw new ArgumentNullException("A valid configuration must be provided");
     } // end of function - GitController
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="auth"></param>
+    /// <returns></returns>
     private AuthInfo ParseAuth(string auth)
     {
       var pair = auth.Split(" ");
@@ -38,39 +44,63 @@ namespace git_cache.Controllers
       {
         Scheme = pair[0],
         RawAuth = auth,
-        Decoded = Convert.FromBase64String(pair[1]),
+        Decoded = Encoding.UTF8.GetString(Convert.FromBase64String(pair[1])),
         Encoded = pair[1]
 
       };
-    }
+    } // end of function - ParseAuth
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="repo"></param>
+    /// <returns></returns>
     private async Task<HttpResponseMessage> AuthenticateAsync(RemoteRepo repo)
     {
       HttpClient client = new HttpClient();
       client.DefaultRequestHeaders.Accept.Clear();
-      if(null != repo.Auth)
-        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(repo.Auth.Scheme, Encoding.ASCII.GetString(repo.Auth.Decoded));
+      if (null != repo.Auth)
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(repo.Auth.Scheme, repo.Auth.Encoded);
       client.DefaultRequestHeaders.UserAgent.Add(
         new System.Net.Http.Headers.ProductInfoHeaderValue("git", "1.0"));
       string url = $"{repo.Url}/info/refs?service=git-upload-pack";
       var resp = await client.GetAsync(url);
       return resp;
-    }
+    } // end of function - AuthenticateAsync
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="destinationServer"></param>
+    /// <param name="repoOwner"></param>
+    /// <param name="repo"></param>
+    /// <param name="authorization"></param>
+    /// <returns></returns>
     private RemoteRepo BuildRemoteRepo(string destinationServer, string repoOwner, string repo, string authorization)
     {
       AuthInfo authInfo = null;
       if (null != authorization)
-      {
         authInfo = ParseAuth(authorization);
-      }
-      // 1. Parse Authorization from headers, if exists
-      // 2. Build remote repository information using auth
       return new RemoteRepo(destinationServer,
                             repoOwner,
                             repo,
                             authInfo,
                             Configuration.DisableHTTPS());
-    }
+    } // end of function - BuildRemoteRepo
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="repo"></param>
+    /// <returns></returns>
+    private async Task<ActionResult> CheckAuthorizationAsync(RemoteRepo repo)
+    {
+      ActionResult retval = null;
+      var resp = await AuthenticateAsync(repo);
+      if (System.Net.HttpStatusCode.OK != resp.StatusCode)
+        retval = new ForwardedResult(resp);
+      return retval;
+    } // end of function - CheckAuthorizationAsync
 
     // GET: api/Git/{server}/{repoOwner}/{repo}/info/refs?service={service}
     /// <summary>
@@ -88,17 +118,8 @@ namespace git_cache.Controllers
     {
       ActionResult retval = null;
       var repo = BuildRemoteRepo(destinationServer, repositoryOwner, repository, authorization);
-      var resp = await AuthenticateAsync(repo);
-      switch ((int)resp.StatusCode)
-      {
-        case 401:
-        case 403:
-        case 404:
-          return new ForwardedResult(resp);
-        case 200: // OK
-        default:
-          break;
-      }
+      if (null != (retval = await CheckAuthorizationAsync(repo)))
+        return retval;
       // 3. Build local repository information using the remote respository info
       LocalRepo local = new LocalRepo(repo, new LocalConfiguration(Configuration));
       // 6. Is this an info request??
@@ -114,42 +135,27 @@ namespace git_cache.Controllers
         Debug.WriteLine("Exception: " + exc);
         retval = new StatusCodeResult(500);
       }
-      //client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("basic",)
-      //     *. Set response headers
-      //        Content-Type: application/x-${service}-advertisement
-      //        Cache-Control: no-cache
-      //     *. Write to the response:
-      //        001e# service=${service}\n0000
-      //     *. Write stdout of service output
-      //   6b. NO
-      //     *. Set response headers
-      //        Content-Type: application/x-${service}-result
-      //        Cache-Control: no-cache
-      //     *. Write stdout of service output
-      //     *. Do we have gzip?
-      //        *. YES - write gzip contents to req
-      //        *. NO  - write contents to req
       return retval;
-    }
+    } // end of function - GetAsync
 
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="destinationServer"></param>
+    /// <param name="repositoryOwner"></param>
+    /// <param name="repository"></param>
+    /// <param name="service"></param>
+    /// <param name="authorization"></param>
+    /// <param name="contentEncoding"></param>
+    /// <returns></returns>
     [HttpPost("{destinationServer}/{repositoryOwner}/{repository}/{service}", Name = "Post")]
     public async Task<ActionResult> PostUploadPack(string destinationServer, string repositoryOwner, string repository, string service, [FromHeader]string authorization, [FromHeader(Name = "content-encoding")]string contentEncoding)
     {
       ActionResult retval = new OkResult();
       var repo = BuildRemoteRepo(destinationServer, repositoryOwner, repository, authorization);
+      if (null != (retval = await CheckAuthorizationAsync(repo)))
+        return retval;
       LocalRepo local = new LocalRepo(repo, new LocalConfiguration(Configuration));
-      var resp = await AuthenticateAsync(repo);
-      switch ((int)resp.StatusCode)
-      {
-        case 400:
-        case 401:
-        case 403:
-        case 404:
-          return new ForwardedResult(resp);
-        case 200:
-        default:
-          break;
-      }
       try
       {
         retval = new GitServiceResultResult(service, local, contentEncoding == "gzip");
@@ -160,12 +166,23 @@ namespace git_cache.Controllers
         retval = new StatusCodeResult(500);
       }
       return retval;
-    }
+    } // end of function - PostUploadPack
 
     // POST: objects/batch - https://github.com/git-lfs/git-lfs/blob/master/docs/api/batch.md
     [HttpPost("{destinationServer}/{repositoryOwner}/{repository}/info/lfs/objects/batch")]
-    public void LFSBatchPost(string destinationServer, string repositoryOwner, string repository, [FromBody]string value)
+    public async Task<ForwardedResult> LFSBatchPost(string destinationServer, string repositoryOwner, string repository, [FromBody]object value, [FromHeader]string authorization)
     {
+      HttpClient client = new HttpClient();
+      var repo = BuildRemoteRepo(destinationServer, repositoryOwner, repository, authorization);
+      client.DefaultRequestHeaders.Accept.Clear();
+      if (null != repo.Auth)
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(repo.Auth.Scheme, repo.Auth.Encoded);
+      client.DefaultRequestHeaders.UserAgent.Add(
+        new System.Net.Http.Headers.ProductInfoHeaderValue("git", "1.0"));
+      client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/vnd.git-lfs+json"));
+      string url = $"{repo.Url}/info/lfs/objects/batch";
+      var resp = await client.PostAsync(url, new StringContent(JsonConvert.SerializeObject(value), Encoding.UTF8, "application/vnd.git-lfs+json"));
+      return new ForwardedResult(resp);
     } // end of function - LFSBatchPost
 
     // PUT: api/Git/5
@@ -175,11 +192,35 @@ namespace git_cache.Controllers
     }
 
     // DELETE: api/ApiWithActions/5
-    [HttpDelete("{id}")]
-    public void Delete(int id)
+    [HttpDelete("{destinationServer}/{repositoryOwner}/{repository}")]
+    public async Task<JsonResult> Delete(string destinationServer, string repositoryOwner, string repository)
     {
+      var statusCode = System.Net.HttpStatusCode.OK;
+      string message = null;
+      var repo = BuildRemoteRepo(destinationServer, repositoryOwner, repository, null);
+      var local = new LocalRepo(repo, new LocalConfiguration(Configuration));
+      if (System.IO.Directory.Exists(local.Path))
+      {
+        System.IO.Directory.Delete(local.Path, true);
+        if (!System.IO.Directory.Exists(local.Path))
+          message = "Deleted local cached directory";
+        else
+        {
+          message = "Failed to delete local cached directory";
+          statusCode = System.Net.HttpStatusCode.InternalServerError;
+        }
+      }
+      else
+      {
+        message = "The repository was not found in the local cache";
+        statusCode = System.Net.HttpStatusCode.NotFound;
+      }
+      return new JsonResult(new
+      {
+        Message = message,
+        StatusCode = statusCode
+      });
     }
-
   } // end of class - GitController
 
 } // end of namespace - git_cache.Controllers

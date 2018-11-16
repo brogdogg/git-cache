@@ -17,7 +17,7 @@ namespace git_cache.Git
     public static string Clone(this LocalRepo local)
     {
       local.CreateLocalDirectory();
-      return $"git clone --quiet --mirror \"{local.Remote.Url}\" \"{local.Path}\"".Bash();
+      return $"git clone --quiet --mirror \"{local.Remote.GitUrl}\" \"{local.Path}\"".Bash();
     }
 
     public static Task<string> CloneAsync(this LocalRepo local)
@@ -33,13 +33,13 @@ namespace git_cache.Git
     /// <returns></returns>
     public static string Fetch(this LocalRepo local)
     {
-      $"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.Url}\"".Bash();
+      $"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"".Bash();
       return $"git -C \"{local.Path}\" fetch --quiet".Bash();
     }
 
     public static async Task<string> FetchAsync(this LocalRepo local)
     {
-      await $"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.Url}\"".BashAsync();
+      await $"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"".BashAsync();
       return await $"git -C \"{local.Path}\" fetch --quiet".BashAsync();
     }
 
