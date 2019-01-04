@@ -9,6 +9,7 @@ using System.Diagnostics;
 using git_cache.Results;
 using System.Text;
 using Newtonsoft.Json;
+using git_cache.Git.LFS;
 
 namespace git_cache.Controllers
 {
@@ -170,8 +171,10 @@ namespace git_cache.Controllers
 
     // POST: objects/batch - https://github.com/git-lfs/git-lfs/blob/master/docs/api/batch.md
     [HttpPost("{destinationServer}/{repositoryOwner}/{repository}/info/lfs/objects/batch")]
-    public async Task<ForwardedResult> LFSBatchPost(string destinationServer, string repositoryOwner, string repository, [FromBody]object value, [FromHeader]string authorization)
+    public async Task<ActionResult> LFSBatchPost(string destinationServer, string repositoryOwner, string repository, [FromBody]BatchRequestObject value, [FromHeader]string authorization)
     {
+      ActionResult retval = new OkResult();
+
       HttpClient client = new HttpClient();
       var repo = BuildRemoteRepo(destinationServer, repositoryOwner, repository, authorization);
       client.DefaultRequestHeaders.Accept.Clear();
@@ -181,8 +184,10 @@ namespace git_cache.Controllers
         new System.Net.Http.Headers.ProductInfoHeaderValue("git", "1.0"));
       client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/vnd.git-lfs+json"));
       string url = $"{repo.Url}/info/lfs/objects/batch";
-      var resp = await client.PostAsync(url, new StringContent(JsonConvert.SerializeObject(value), Encoding.UTF8, "application/vnd.git-lfs+json"));
-      return new ForwardedResult(resp);
+      //var resp = await client.PostAsync(url, new StringContent(JsonConvert.SerializeObject(value), Encoding.UTF8, "application/vnd.git-lfs+json"));
+      //return new ForwardedResult(resp);
+
+      return retval;
     } // end of function - LFSBatchPost
 
     // PUT: api/Git/5
