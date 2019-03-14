@@ -223,10 +223,16 @@ namespace git_cache.Controllers
     public async Task<ActionResult> LFSDownload(string destinationServer, string repositoryOwner, string repository, string oid, [FromHeader]string authorization)
     {
       ActionResult retval = new OkResult();
+      repository = repository.Replace(".git", "");
       var repo = BuildRemoteRepo(destinationServer, repositoryOwner, repository, authorization);
       var local = new LocalRepo(repo, new LocalConfiguration(Configuration));
-      var objFilePath = ($"git-lfs ls-files -l | grep {oid} | " + "awk -F'*' '{print $2}'").Bash();
+      var objFilePath = $"lfs/objects/{oid.Substring(0, 2)}/{oid.Substring(2, 2)}/{oid}";
       var pathToDownload = System.IO.Path.Combine(local.Path, objFilePath);
+      if (!System.IO.File.Exists(pathToDownload))
+      {
+        var pointerPath = ($"git-lfs ls-files -l | grep {oid} | " + "awk -F'-' '{print $2}'").Bash();
+        // Download file, using git-lfs smudge
+      }
       var fs = new FileStream(pathToDownload, FileMode.Open);
       retval = File(fs, "application/octect-stream", Path.GetFileName(pathToDownload));
       return retval;

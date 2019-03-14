@@ -25,6 +25,16 @@ namespace git_cache.Git
       return Task.Run(() => Clone(local));
     }
 
+    public static string LFSFetch(this LocalRepo local)
+    {
+      return $"cd \"{local.Path}\" && git-lfs fetch".Bash();
+    }
+
+    public static Task<string> LFSFetchAsync(this LocalRepo local)
+    {
+      return Task.Run(() => LFSFetch(local));
+    }
+
     /// <summary>
     /// Fetches for the repository, assumes already exists...
     /// </summary>
@@ -36,6 +46,7 @@ namespace git_cache.Git
       $"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"".Bash();
       return $"git -C \"{local.Path}\" fetch --quiet".Bash();
     }
+
 
     public static async Task<string> FetchAsync(this LocalRepo local)
     {
@@ -50,11 +61,13 @@ namespace git_cache.Git
       {
         // First try to fetch the details...
         output = await FetchAsync(local);
+        await LFSFetchAsync(local);
       }
       catch (Exception)
       {
         // If fetch failed, then we must need to clone everything!
         output = await CloneAsync(local);
+        await LFSFetchAsync(local);
       }
       return output;
     }
