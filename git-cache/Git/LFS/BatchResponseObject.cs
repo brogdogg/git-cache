@@ -31,6 +31,12 @@ namespace git_cache.Git.LFS
       [DataMember(Name = "actions", EmitDefaultValue = false)]
       public LFSActions Actions { get; set; }
 
+      /// <summary>
+      /// Gets/Sets the error, if any, associated with the item
+      /// </summary>
+      [DataMember(Name ="error", EmitDefaultValue = false)]
+      public LFSError Error { get; set; } = null;
+
     } // end of class - ResponseLFSItem
 
     /// <summary>

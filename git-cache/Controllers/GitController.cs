@@ -10,6 +10,8 @@ using git_cache.Results;
 using System.Text;
 using Newtonsoft.Json;
 using git_cache.Git.LFS;
+using System.IO;
+using git_cache.Shell;
 
 namespace git_cache.Controllers
 {
@@ -186,9 +188,49 @@ namespace git_cache.Controllers
       string url = $"{repo.Url}/info/lfs/objects/batch";
       //var resp = await client.PostAsync(url, new StringContent(JsonConvert.SerializeObject(value), Encoding.UTF8, "application/vnd.git-lfs+json"));
       //return new ForwardedResult(resp);
-
+      retval = new JsonResult(await CreateBatchLFSResponse(repo, value));
       return retval;
     } // end of function - LFSBatchPost
+
+    public async Task<BatchResponseObject> CreateBatchLFSResponse(RemoteRepo repo, BatchRequestObject reqObj)
+    {
+      BatchResponseObject retval = new BatchResponseObject();
+      foreach(var obj in reqObj.Objects)
+      {
+        LFSActions actions = new LFSActions();
+        //string baseUrl = $"{this.Request.Scheme}://{this.Request.Host}/{this.Request.PathBase}";
+        string baseUrl = $"{this.Request.Scheme}://{this.Request.Host}/api/Git";
+        actions.Download = new LFSActions.DownloadAction()
+        {
+          ExpiresAt = null,
+          ExpiresIn = 0,
+          HREF = $"{baseUrl}/{repo.Server}/{repo.Owner}/{repo.Name}/lfs/download/{obj.OID}"
+        };
+        retval.Objects = new System.Collections.Generic.List<BatchResponseObject.ResponseLFSItem>();
+        retval.Objects.Add(new BatchResponseObject.ResponseLFSItem()
+        {
+          Authenticated = true,
+          OID = obj.OID,
+          Size = 0,
+          Actions = actions,
+          Error = null
+        });
+      } // end of foreach - object in the LFS request objects call
+      return retval;
+    } // end of function - CreateBatchLFSResponse
+
+    [HttpGet("{destinationServer}/{repositoryOwner}/{repository}/lfs/download/{oid}")]
+    public async Task<ActionResult> LFSDownload(string destinationServer, string repositoryOwner, string repository, string oid, [FromHeader]string authorization)
+    {
+      ActionResult retval = new OkResult();
+      var repo = BuildRemoteRepo(destinationServer, repositoryOwner, repository, authorization);
+      var local = new LocalRepo(repo, new LocalConfiguration(Configuration));
+      var objFilePath = ($"git-lfs ls-files -l | grep {oid} | " + "awk -F'*' '{print $2}'").Bash();
+      var pathToDownload = System.IO.Path.Combine(local.Path, objFilePath);
+      var fs = new FileStream(pathToDownload, FileMode.Open);
+      retval = File(fs, "application/octect-stream", Path.GetFileName(pathToDownload));
+      return retval;
+    }
 
     // PUT: api/Git/5
     [HttpPut("{id}")]
