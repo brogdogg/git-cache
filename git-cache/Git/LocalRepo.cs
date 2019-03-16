@@ -30,6 +30,8 @@ namespace git_cache.Git
         throw new ArgumentNullException("Must provide a valid owner name");
       if (null == (Name = name))
         throw new ArgumentNullException("Must provide a valid name for the repository");
+      else if (Name.EndsWith(".git"))
+        Name = Name.Remove(Name.LastIndexOf(".git"));
       Auth = auth;
 
       string protocol = disableHTTPS ? "http" : "https";

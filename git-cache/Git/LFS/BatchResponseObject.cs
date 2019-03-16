@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Runtime.Serialization;
-using System.Threading.Tasks;
 
 namespace git_cache.Git.LFS
 {
@@ -53,7 +50,7 @@ namespace git_cache.Git.LFS
     /// Gets/Sets the list of objects to download
     /// </summary>
     [DataMember(Name = "objects")]
-    public List<ResponseLFSItem> Objects { get; set; }
+    public List<ResponseLFSItem> Objects { get; set; } = new List<ResponseLFSItem>();
 
   } // end of class - BatchResponseObject
 
