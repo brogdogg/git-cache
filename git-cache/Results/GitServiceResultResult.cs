@@ -1,27 +1,68 @@
-﻿using git_cache.Git;
+﻿/******************************************************************************
+ * File...: GitServiceResultResult.cs
+ * Remarks: 
+ */
+using git_cache.Git;
 using git_cache.Shell;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace git_cache.Results
 {
+  /************************** GitServiceResultResult *************************/
+  /// <summary>
+  /// 
+  /// </summary>
   public class GitServiceResultResult : ActionResult
   {
-    public string Service { get; }
-    public bool UseGZip { get; }
-    public LocalRepo Repository { get; }
+    /*======================= PUBLIC ========================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Service ****************************************/
+    /// <summary>
+    /// Gets the service associated with the result
+    /// </summary>
+    public string Service { get; } /* End of Property - Service */
+    /************************ UseGZip ****************************************/
+    /// <summary>
+    /// Gets a boolean flag indicating if the result should be gzipped
+    /// </summary>
+    public bool UseGZip { get; } /* End of Property - UseGZip */
+    /************************ Repository *************************************/
+    /// <summary>
+    /// Gets the repository associated with the result
+    /// </summary>
+    public LocalRepo Repository { get; } /* End of Property - Repository */
+    /************************ Construction ***********************************/
+    /*----------------------- GitServiceResultResult ------------------------*/
+    /// <summary>
+    /// Constructor for the result
+    /// </summary>
+    /// <param name="service">
+    /// Service for the result
+    /// </param>
+    /// <param name="repo">
+    /// Repository associated with the result
+    /// </param>
+    /// <param name="useGzip">
+    /// True if the result should be compressed, false otherwise
+    /// </param>
     public GitServiceResultResult(string service, LocalRepo repo, bool useGzip = false)
     {
       Service = service;
       UseGZip = useGzip;
       Repository = repo;
-    }
+    } /* End of Function - GitServiceResultResult */
+    /************************ Methods ****************************************/
+    /*----------------------- ExecuteResult ---------------------------------*/
+    /// <summary>
+    /// Executes the logic to actually return the result
+    /// </summary>
+    /// <param name="context">
+    /// Context for the action
+    /// </param>
     public override void ExecuteResult(ActionContext context)
     {
       var response = context.HttpContext.Response;
@@ -31,11 +72,8 @@ namespace git_cache.Results
       response.Headers.Add("Cache-Control", "no-cache");
       Stream stream = request.Body;
       Stream gzipStream = new GZipStream(response.Body, CompressionLevel.Optimal, true);
-      //response.Headers.Add("Content-Encoding", "gzip");
       if (UseGZip)
-      {
         stream = new GZipStream(request.Body, CompressionMode.Decompress, true);
-      }
       $"{Service} --stateless-rpc \"{Repository.Path}\"".Bash((code) => code != 0, response.Body, (writer) =>
       {
         FileStream fs = new FileStream("/tmp/test", FileMode.Create, FileAccess.Write);
@@ -52,15 +90,7 @@ namespace git_cache.Results
               {
                 inputWriter.WriteLine(line);
                 fsw.WriteLine(line);
-              }
-              /*
-              int bytesRead = 0;
-              while ((bytesRead = inputReader.Read(buffer, 0, buffer.Length)) > 0)
-              {
-                inputWriter.Write(buffer, 0, bytesRead);
-                fsw.Write(buffer, 0, bytesRead);
-              } // end of while - still able to read bytes from the input stream
-              */
+              } // end of while - still have lines to read
             } // end of using - stream reader for the source stream
           } // end of using - stream writer for the input stream
         } // end of using - file stream writer for debuggin
@@ -68,6 +98,26 @@ namespace git_cache.Results
       );
       if (gzipStream != null) gzipStream.Dispose();
       return;
-    }
-  }
+    } /* End of Function - ExecuteResult */
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+
+    /*======================= PROTECTED =====================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+
+    /*======================= PRIVATE =======================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+
+  } /* End of Class - GitServiceResultResult */
 }
+/* End of document - GitServiceResultResult.cs */

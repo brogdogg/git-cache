@@ -1,4 +1,7 @@
-﻿using System;
+﻿/******************************************************************************
+ * 
+ */
+using System;
 using Microsoft.AspNetCore.Mvc;
 using git_cache.Git;
 using Microsoft.Extensions.Configuration;
@@ -15,16 +18,24 @@ using System.Net.Http.Headers;
 namespace git_cache.Controllers
 {
 
+  /************************** GitController **********************************/
   /// <summary>
-  /// 
+  /// Controller for git operations
   /// </summary>
   [Produces("application/json")]
   [Route("api/Git")]
   public class GitController : Controller
   {
-    // Holding spot for the injected configuration
+    /*======================= PUBLIC ========================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Configuration **********************************/
+    /// <summary>
+    /// Holding spot for the injected configuration
+    /// </summary>
     IConfiguration Configuration { get; } = null;
-
+    /************************ Construction ***********************************/
+    /*----------------------- GitController ---------------------------------*/
     /// <summary>
     /// Constructor for dependency injection
     /// </summary>
@@ -37,107 +48,7 @@ namespace git_cache.Controllers
       if (null == (Configuration = config))
         throw new ArgumentNullException("A valid configuration must be provided");
     } // end of function - GitController
-
-    /// <summary>
-    /// Parses the string for a basic authorization entry
-    /// </summary>
-    /// <param name="auth"></param>
-    /// <returns></returns>
-    private AuthInfo ParseAuth(string auth)
-    {
-      var pair = auth.Split(" ");
-      return new AuthInfo
-        {
-          Scheme = pair[0],
-          RawAuth = auth,
-          Decoded = Encoding.UTF8.GetString(Convert.FromBase64String(pair[1])),
-          Encoded = pair[1]
-        };
-    } // end of function - ParseAuth
-
-    /// <summary>
-    /// Authenticates asynchronously
-    /// </summary>
-    /// <param name="repo">
-    /// The remote repository to authenticate against
-    /// </param>
-    /// <returns>
-    /// Task for getting the HTTP Response from the authentication request
-    /// </returns>
-    private async Task<HttpResponseMessage> AuthenticateAsync(RemoteRepo repo)
-    {
-      // Create a HTTP client to work with
-      HttpClient client = new HttpClient();
-      // Clear out the headers and setup our own
-      client.DefaultRequestHeaders.Accept.Clear();
-      // Attach the authentication if we have it
-      if (null != repo.Auth)
-        client.DefaultRequestHeaders.Authorization
-          = new AuthenticationHeaderValue(repo.Auth.Scheme,
-                                          repo.Auth.Encoded);
-      // Pretend we are a git client
-      client.DefaultRequestHeaders.UserAgent.Add(
-        new System.Net.Http.Headers.ProductInfoHeaderValue("git", "1.0"));
-      // Finally go ahead and authenticate against the info/refs url
-      string url = $"{repo.Url}/info/refs?service=git-upload-pack";
-      return await client.GetAsync(url);
-    } // end of function - AuthenticateAsync
-
-    /// <summary>
-    /// Builds a <see cref="RemoteRepo"/> object from the specified values.
-    /// </summary>
-    /// <param name="destinationServer">
-    /// Sever address, without the protocol; e.g. github.com
-    /// </param>
-    /// <param name="repoOwner">
-    /// Owner of the repository
-    /// </param>
-    /// <param name="repo">
-    /// Name of the repository
-    /// </param>
-    /// <param name="authorization">
-    /// Optional authentication record to associate with the repository
-    /// </param>
-    /// <returns>
-    /// Remote repository object associated with the given parameters
-    /// </returns>
-    private RemoteRepo BuildRemoteRepo(
-      string destinationServer,
-      string repoOwner,
-      string repo,
-      string authorization)
-    {
-      AuthInfo authInfo = null;
-      if (null != authorization)
-        authInfo = ParseAuth(authorization);
-      return new RemoteRepo(destinationServer,
-                            repoOwner,
-                            repo,
-                            authInfo,
-                            Configuration.DisableHTTPS());
-    } // end of function - BuildRemoteRepo
-
-    /// <summary>
-    /// Checks the authorization against the remote repository
-    /// </summary>
-    /// <param name="repo">
-    /// Remote repository to work with
-    /// </param>
-    /// <returns>
-    /// The forwarded result task
-    /// </returns>
-    private async Task<ActionResult> CheckAuthorizationAsync(RemoteRepo repo)
-    {
-      ActionResult retval = null;
-      // Authenticate the repository
-      var resp = await AuthenticateAsync(repo);
-      // If we were not successful, then we will forward the result back to the
-      // user
-      if (System.Net.HttpStatusCode.OK != resp.StatusCode)
-        retval = new ForwardedResult(resp);
-      return retval;
-    } // end of function - CheckAuthorizationAsync
-
+    /************************ Methods ****************************************/
     // GET: api/Git/{server}/{repoOwner}/{repo}/info/refs?service={service}
     /// <summary>
     /// HTTP GET handler for fetch/clones from git
@@ -397,6 +308,14 @@ namespace git_cache.Controllers
         });
     } // end of function - DeleteCachedRepository
 
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+
+    /*======================= PROTECTED =====================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
     /// <summary>
     /// Gets the local repository associated with the given parameters
     /// </summary>
@@ -412,9 +331,120 @@ namespace git_cache.Controllers
         new LocalConfiguration(this.Configuration)
         );
     } // end of function - GetLocalRepo
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+
+    /*======================= PRIVATE =======================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+    /*----------------------- ParseAuth -------------------------------------*/
+    /// <summary>
+    /// Parses the string for a basic authorization entry
+    /// </summary>
+    /// <param name="auth"></param>
+    private AuthInfo ParseAuth(string auth)
+    {
+      var pair = auth.Split(" ");
+      return new AuthInfo
+        {
+          Scheme = pair[0],
+          RawAuth = auth,
+          Decoded = Encoding.UTF8.GetString(Convert.FromBase64String(pair[1])),
+          Encoded = pair[1]
+        };
+    } // end of function - ParseAuth
+
+    /// <summary>
+    /// Authenticates asynchronously
+    /// </summary>
+    /// <param name="repo">
+    /// The remote repository to authenticate against
+    /// </param>
+    /// <returns>
+    /// Task for getting the HTTP Response from the authentication request
+    /// </returns>
+    private async Task<HttpResponseMessage> AuthenticateAsync(RemoteRepo repo)
+    {
+      // Create a HTTP client to work with
+      HttpClient client = new HttpClient();
+      // Clear out the headers and setup our own
+      client.DefaultRequestHeaders.Accept.Clear();
+      // Attach the authentication if we have it
+      if (null != repo.Auth)
+        client.DefaultRequestHeaders.Authorization
+          = new AuthenticationHeaderValue(repo.Auth.Scheme,
+                                          repo.Auth.Encoded);
+      // Pretend we are a git client
+      client.DefaultRequestHeaders.UserAgent.Add(
+        new System.Net.Http.Headers.ProductInfoHeaderValue("git", "1.0"));
+      // Finally go ahead and authenticate against the info/refs url
+      string url = $"{repo.Url}/info/refs?service=git-upload-pack";
+      return await client.GetAsync(url);
+    } // end of function - AuthenticateAsync
+
+    /// <summary>
+    /// Builds a <see cref="RemoteRepo"/> object from the specified values.
+    /// </summary>
+    /// <param name="destinationServer">
+    /// Sever address, without the protocol; e.g. github.com
+    /// </param>
+    /// <param name="repoOwner">
+    /// Owner of the repository
+    /// </param>
+    /// <param name="repo">
+    /// Name of the repository
+    /// </param>
+    /// <param name="authorization">
+    /// Optional authentication record to associate with the repository
+    /// </param>
+    /// <returns>
+    /// Remote repository object associated with the given parameters
+    /// </returns>
+    private RemoteRepo BuildRemoteRepo(
+      string destinationServer,
+      string repoOwner,
+      string repo,
+      string authorization)
+    {
+      AuthInfo authInfo = null;
+      if (null != authorization)
+        authInfo = ParseAuth(authorization);
+      return new RemoteRepo(destinationServer,
+                            repoOwner,
+                            repo,
+                            authInfo,
+                            Configuration.DisableHTTPS());
+    } // end of function - BuildRemoteRepo
+
+    /// <summary>
+    /// Checks the authorization against the remote repository
+    /// </summary>
+    /// <param name="repo">
+    /// Remote repository to work with
+    /// </param>
+    /// <returns>
+    /// The forwarded result task
+    /// </returns>
+    private async Task<ActionResult> CheckAuthorizationAsync(RemoteRepo repo)
+    {
+      ActionResult retval = null;
+      // Authenticate the repository
+      var resp = await AuthenticateAsync(repo);
+      // If we were not successful, then we will forward the result back to the
+      // user
+      if (System.Net.HttpStatusCode.OK != resp.StatusCode)
+        retval = new ForwardedResult(resp);
+      return retval;
+    } // end of function - CheckAuthorizationAsync
+
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
 
   } // end of class - GitController
 
 } // end of namespace - git_cache.Controllers
 
 
+/* End of document - GitController.cs */

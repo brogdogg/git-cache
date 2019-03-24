@@ -1,25 +1,64 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
+﻿/******************************************************************************
+ * File...: Program.cs
+ * Remarks: 
+ */
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
 
 namespace git_cache
 {
+  /************************** Program ****************************************/
+  /// <summary>
+  /// Main class for the program
+  /// </summary>
   public class Program
   {
+
+    /*======================= PUBLIC ========================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+    /*----------------------- Main ------------------------------------------*/
+    /// <summary>
+    /// Entry point for the program
+    /// </summary>
+    /// <param name="args">
+    /// Arguments passed to the program
+    /// </param>
     public static void Main(string[] args)
     {
       BuildWebHost(args).Run();
-    }
+    } /* End of Function - Main */
 
+    /*----------------------- BuildWebHost ----------------------------------*/
+    /// <summary>
+    /// The function responsible for building the web host
+    /// </summary>
+    /// <param name="args"></param>
     public static IWebHost BuildWebHost(string[] args) =>
         WebHost.CreateDefaultBuilder(args)
             .UseStartup<Startup>()
             .Build();
-  }
+
+    /*======================= PROTECTED =====================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+
+    /*======================= PRIVATE =======================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+
+  } /* End of Class - Program */
 }
+/* End of document - Program.cs */

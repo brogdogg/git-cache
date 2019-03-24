@@ -1,4 +1,7 @@
-﻿using git_cache.IO;
+﻿/******************************************************************************
+ * File...: ShellHelper.cs
+ * Remarks: 
+ */
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -7,13 +10,37 @@ using System.Threading.Tasks;
 
 namespace git_cache.Shell
 {
+  /************************** ShellHelper ************************************/
+  /// <summary>
+  /// Static class with string extension methods used to execute BASH commands
+  /// </summary>
   public static class ShellHelper
   {
 
+
+    /*======================= PUBLIC ========================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+    /*----------------------- Bash ------------------------------------------*/
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="command"></param>
     public static string Bash(this string command)
     {
       return Bash(command, (exitCode) => exitCode != 0);
-    }
+    } /* End of Function - Bash */
+
+    /*----------------------- Bash ------------------------------------------*/
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="command"></param>
+    /// <param name="isExitCodeFailure"></param>
     public static string Bash(this string command, Func<int, bool> isExitCodeFailure)
     {
       string retval = "";
@@ -27,6 +54,14 @@ namespace git_cache.Shell
       return retval;
     } // end of function - Bash
 
+    /*----------------------- Bash ------------------------------------------*/
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="command"></param>
+    /// <param name="isExitCodeFailure"></param>
+    /// <param name="outStream"></param>
+    /// <param name="inputWriter"></param>
     public static int Bash(this string command, Func<int, bool> isExitCodeFailure, Stream outStream, Action<StreamWriter> inputWriter=null)
     {
       int retval = 0;
@@ -74,6 +109,7 @@ namespace git_cache.Shell
       return retval;
     } // end of function - Bash
 
+    /*----------------------- BashAsync -------------------------------------*/
     /// <summary>
     /// Executes the bash command asynchronously.
     /// </summary>
@@ -91,6 +127,7 @@ namespace git_cache.Shell
       return Task.Run(() => Bash(command, isExitCodeFailure));
     } // end of function - BashAsync
 
+    /*----------------------- BashAsync -------------------------------------*/
     /// <summary>
     /// Executes the bash command asynchronously
     /// </summary>
@@ -108,6 +145,7 @@ namespace git_cache.Shell
       return Task.Run(() => Bash(command));
     } // end of function - BashAsync
 
+    /*----------------------- StartNewReader --------------------------------*/
     /// <summary>
     /// Starts a new asynchronous StreamReader object on the specified stream
     /// which forwards data to the destination stream
@@ -125,7 +163,24 @@ namespace git_cache.Shell
             destinationStream.Flush();
           },
           false);
-    }
+    } /* End of Function - StartNewReader */
+
+    /*======================= PROTECTED =====================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+
+    /*======================= PRIVATE =======================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
 
   } // end of class - ShellHelper
 }
+/* End of document - ShellHelper.cs */
