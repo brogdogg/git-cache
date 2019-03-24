@@ -17,12 +17,22 @@ namespace git_cache.Git
     public static string Clone(this LocalRepo local)
     {
       local.CreateLocalDirectory();
-      return $"git clone --quiet --mirror \"{local.Remote.Url}\" \"{local.Path}\"".Bash();
+      return $"git clone --quiet --mirror \"{local.Remote.GitUrl}\" \"{local.Path}\"".Bash();
     }
 
     public static Task<string> CloneAsync(this LocalRepo local)
     {
       return Task.Run(() => Clone(local));
+    }
+
+    public static string LFSFetch(this LocalRepo local)
+    {
+      return $"cd \"{local.Path}\" && git-lfs fetch".Bash();
+    }
+
+    public static Task<string> LFSFetchAsync(this LocalRepo local)
+    {
+      return Task.Run(() => LFSFetch(local));
     }
 
     /// <summary>
@@ -33,20 +43,33 @@ namespace git_cache.Git
     /// <returns></returns>
     public static string Fetch(this LocalRepo local)
     {
-      $"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.Url}\"".Bash();
+      $"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"".Bash();
       return $"git -C \"{local.Path}\" fetch --quiet".Bash();
     }
 
-    public static Task<string> FetchAsync(this LocalRepo local)
+
+    public static async Task<string> FetchAsync(this LocalRepo local)
     {
-      return Task.Run(() => Fetch(local));
+      await $"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"".BashAsync();
+      return await $"git -C \"{local.Path}\" fetch --quiet".BashAsync();
     }
 
-    public static Task<string> UpdateLocalAsync(this LocalRepo local)
+    public static async Task<string> UpdateLocalAsync(this LocalRepo local)
     {
-      return FetchAsync(local)
-        .ContinueWith((output) => CloneAsync(local).Result, TaskContinuationOptions.OnlyOnRanToCompletion)
-        .ContinueWith((a) => a.Result, TaskContinuationOptions.OnlyOnFaulted);
+      string output = null;
+      try
+      {
+        // First try to fetch the details...
+        output = await FetchAsync(local);
+        await LFSFetchAsync(local);
+      }
+      catch (Exception)
+      {
+        // If fetch failed, then we must need to clone everything!
+        output = await CloneAsync(local);
+        await LFSFetchAsync(local);
+      }
+      return output;
     }
   }
 
