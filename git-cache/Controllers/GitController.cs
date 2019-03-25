@@ -76,7 +76,7 @@ namespace git_cache.Controllers
       if (null != (retval = await CheckAuthorizationAsync(repo)))
         return retval;
       // Create a local repository based on the remote repo
-      LocalRepo local = new LocalRepo(repo, new LocalConfiguration(Configuration));
+      ILocalRepository local = new LocalRepo(repo, new LocalConfiguration(Configuration));
       try
       {
         // Updates our local cache, if it has never been downloaded then it
@@ -119,7 +119,7 @@ namespace git_cache.Controllers
       var repo = BuildRemoteRepo(destinationServer, repositoryOwner, repository, authorization);
       if (null != (retval = await CheckAuthorizationAsync(repo)))
         return retval;
-      LocalRepo local = new LocalRepo(repo, new LocalConfiguration(Configuration));
+      ILocalRepository local = new LocalRepo(repo, new LocalConfiguration(Configuration));
       try
       {
         retval = new GitServiceResultResult(service, local, contentEncoding == "gzip");
@@ -186,7 +186,7 @@ namespace git_cache.Controllers
     /// Task generating a <see cref="BatchResponseObject"/>, with information to
     /// send to the client
     /// </returns>
-    public async Task<BatchResponseObject> CreateBatchLFSResponse(LocalRepo repo, BatchRequestObject reqObj)
+    public async Task<BatchResponseObject> CreateBatchLFSResponse(ILocalRepository repo, BatchRequestObject reqObj)
     {
       // Create our main response object
       BatchResponseObject retval = new BatchResponseObject();
@@ -325,7 +325,7 @@ namespace git_cache.Controllers
     /// <param name="name"></param>
     /// <param name="auth"></param>
     /// <returns></returns>
-    protected LocalRepo GetLocalRepo(string server, string owner, string name, string auth = null)
+    protected ILocalRepository GetLocalRepo(string server, string owner, string name, string auth = null)
     {
       return new LocalRepo(
         BuildRemoteRepo(server, owner, name, auth),
@@ -345,7 +345,7 @@ namespace git_cache.Controllers
     /// Parses the string for a basic authorization entry
     /// </summary>
     /// <param name="auth"></param>
-    private AuthInfo ParseAuth(string auth)
+    private IAuthInfo ParseAuth(string auth)
     {
       var pair = auth.Split(" ");
       return new AuthInfo
@@ -366,7 +366,7 @@ namespace git_cache.Controllers
     /// <returns>
     /// Task for getting the HTTP Response from the authentication request
     /// </returns>
-    private async Task<HttpResponseMessage> AuthenticateAsync(RemoteRepo repo)
+    private async Task<HttpResponseMessage> AuthenticateAsync(IRemoteRepository repo)
     {
       // Create a HTTP client to work with
       HttpClient client = new HttpClient();
@@ -386,7 +386,7 @@ namespace git_cache.Controllers
     } // end of function - AuthenticateAsync
 
     /// <summary>
-    /// Builds a <see cref="RemoteRepo"/> object from the specified values.
+    /// Builds a <see cref="IRemoteRepository"/> object from the specified values.
     /// </summary>
     /// <param name="destinationServer">
     /// Sever address, without the protocol; e.g. github.com
@@ -403,13 +403,13 @@ namespace git_cache.Controllers
     /// <returns>
     /// Remote repository object associated with the given parameters
     /// </returns>
-    private RemoteRepo BuildRemoteRepo(
+    private IRemoteRepository BuildRemoteRepo(
       string destinationServer,
       string repoOwner,
       string repo,
       string authorization)
     {
-      AuthInfo authInfo = null;
+      IAuthInfo authInfo = null;
       if (null != authorization)
         authInfo = ParseAuth(authorization);
       return new RemoteRepo(destinationServer,
@@ -428,7 +428,7 @@ namespace git_cache.Controllers
     /// <returns>
     /// The forwarded result task
     /// </returns>
-    private async Task<ActionResult> CheckAuthorizationAsync(RemoteRepo repo)
+    private async Task<ActionResult> CheckAuthorizationAsync(IRemoteRepository repo)
     {
       ActionResult retval = null;
       // Authenticate the repository

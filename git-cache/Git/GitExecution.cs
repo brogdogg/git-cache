@@ -10,7 +10,7 @@ namespace git_cache.Git
 {
   /************************** GitExecution ***********************************/
   /// <summary>
-  /// Extension class to allow git operations on a <see cref="LocalRepo"/>
+  /// Extension class to allow git operations on a <see cref="ILocalRepository"/>
   /// object.
   /// </summary>
   public static class GitExecution
@@ -27,7 +27,7 @@ namespace git_cache.Git
     /// Clones the repository
     /// </summary>
     /// <param name="local">Local repo</param>
-    public static string Clone(this LocalRepo local)
+    public static string Clone(this ILocalRepository local)
     {
       local.CreateLocalDirectory();
       return $"git clone --quiet --mirror \"{local.Remote.GitUrl}\" \"{local.Path}\"".Bash();
@@ -38,7 +38,7 @@ namespace git_cache.Git
     /// Clone in async
     /// </summary>
     /// <param name="local">Local repo</param>
-    public static Task<string> CloneAsync(this LocalRepo local)
+    public static Task<string> CloneAsync(this ILocalRepository local)
     {
       return Task.Run(() => Clone(local));
     } /* End of Function - CloneAsync */
@@ -48,7 +48,7 @@ namespace git_cache.Git
     /// LFS fetch in sync
     /// </summary>
     /// <param name="local">Local repo</param>
-    public static string LFSFetch(this LocalRepo local)
+    public static string LFSFetch(this ILocalRepository local)
     {
       return $"cd \"{local.Path}\" && git-lfs fetch".Bash();
     } /* End of Function - LFSFetch */
@@ -58,7 +58,7 @@ namespace git_cache.Git
     /// LFS fetch async
     /// </summary>
     /// <param name="local">Local repo</param>
-    public static Task<string> LFSFetchAsync(this LocalRepo local)
+    public static Task<string> LFSFetchAsync(this ILocalRepository local)
     {
       return Task.Run(() => LFSFetch(local));
     } /* End of Function - LFSFetchAsync */
@@ -68,7 +68,7 @@ namespace git_cache.Git
     /// Fetches for the repository, assumes already exists...
     /// </summary>
     /// <param name="local">Local repository</param>
-    public static string Fetch(this LocalRepo local)
+    public static string Fetch(this ILocalRepository local)
     {
       $"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"".Bash();
       return $"git -C \"{local.Path}\" fetch --quiet".Bash();
@@ -79,7 +79,7 @@ namespace git_cache.Git
     /// Fetches git information
     /// </summary>
     /// <param name="local">The local repo</param>
-    public static async Task<string> FetchAsync(this LocalRepo local)
+    public static async Task<string> FetchAsync(this ILocalRepository local)
     {
       await $"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"".BashAsync();
       return await $"git -C \"{local.Path}\" fetch --quiet".BashAsync();
@@ -92,7 +92,7 @@ namespace git_cache.Git
     /// <param name="local">
     /// The local repository
     /// </param>
-    public static async Task<string> UpdateLocalAsync(this LocalRepo local)
+    public static async Task<string> UpdateLocalAsync(this ILocalRepository local)
     {
       string output = null;
       try

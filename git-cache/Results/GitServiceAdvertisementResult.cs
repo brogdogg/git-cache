@@ -30,7 +30,7 @@ namespace git_cache.Results
     /// <summary>
     /// Gets the repository associated with the result
     /// </summary>
-    public LocalRepo Repository { get; } /* End of Property - Repository */
+    public ILocalRepository Repository { get; } /* End of Property - Repository */
     /************************ Construction ***********************************/
 
     /*----------------------- GitServiceAdvertisementResult -----------------*/
@@ -43,7 +43,7 @@ namespace git_cache.Results
     /// <param name="repo">
     /// The repository the result is for
     /// </param>
-    public GitServiceAdvertisementResult(string service, LocalRepo repo)
+    public GitServiceAdvertisementResult(string service, ILocalRepository repo)
     {
       Service = service;
       if (null == (Repository = repo))

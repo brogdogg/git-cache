@@ -34,7 +34,7 @@ namespace git_cache.Results
     /// <summary>
     /// Gets the repository associated with the result
     /// </summary>
-    public LocalRepo Repository { get; } /* End of Property - Repository */
+    public ILocalRepository Repository { get; } /* End of Property - Repository */
     /************************ Construction ***********************************/
     /*----------------------- GitServiceResultResult ------------------------*/
     /// <summary>
@@ -49,7 +49,7 @@ namespace git_cache.Results
     /// <param name="useGzip">
     /// True if the result should be compressed, false otherwise
     /// </param>
-    public GitServiceResultResult(string service, LocalRepo repo, bool useGzip = false)
+    public GitServiceResultResult(string service, ILocalRepository repo, bool useGzip = false)
     {
       Service = service;
       UseGZip = useGzip;

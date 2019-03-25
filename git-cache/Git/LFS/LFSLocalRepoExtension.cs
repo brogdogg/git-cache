@@ -8,7 +8,7 @@ namespace git_cache.Git.LFS
 {
   /************************** LFSLocalRepoExtension **************************/
   /// <summary>
-  /// Extension class for the <see cref="LocalRepo"/>
+  /// Extension class for the <see cref="ILocalRepository"/>
   /// </summary>
   public static class LFSLocalRepoExtension
   {
@@ -25,7 +25,7 @@ namespace git_cache.Git.LFS
     /// </summary>
     /// <param name="repo">Local repo</param>
     /// <param name="oid">LFS object ID</param>
-    public static string LFSObjectPath(this LocalRepo repo, string oid)
+    public static string LFSObjectPath(this ILocalRepository repo, string oid)
     {
       if (oid == null)
         throw new ArgumentNullException("OID must not be null");
