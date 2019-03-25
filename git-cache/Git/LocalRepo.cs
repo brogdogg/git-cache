@@ -1,5 +1,5 @@
 ﻿/******************************************************************************
- * File...: LocalRepo
+ * File...: LocalRepo.cs
  * Remarks: 
  */
 using git_cache.Configuration;
@@ -115,8 +115,8 @@ namespace git_cache.Git
       Auth = auth;
 
       string protocol = disableHTTPS ? "http" : "https";
-      Url = $"{protocol}://{server}/{owner}/{name}";
-      GitUrl = auth == null ? Url : $"{protocol}://{auth.Decoded.ToString()}@{server}/{owner}/{name}";
+      Url = $"{protocol}://{Server}/{Owner}/{Name}";
+      GitUrl = auth == null ? Url : $"{protocol}://{auth.Decoded.ToString()}@{Server}/{Owner}/{Name}";
     } /* End of Function - RemoteRepo */
     /************************ Methods ****************************************/
     /************************ Fields *****************************************/

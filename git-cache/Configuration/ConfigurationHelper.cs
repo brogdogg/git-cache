@@ -1,5 +1,6 @@
 ﻿/******************************************************************************
- * 
+ * File...: ConfigurationHelper.cs
+ * Remarks: 
  */
 using Microsoft.Extensions.Configuration;
 
@@ -7,7 +8,8 @@ namespace git_cache.Configuration
 {
   /************************** ConfigurationHelper ****************************/
   /// <summary>
-  /// 
+  /// <see cref="IConfiguration"/> extension class, for dealing with git-cache
+  /// specific configuration settings.
   /// </summary>
   public static class ConfigurationHelper
   {
@@ -16,6 +18,20 @@ namespace git_cache.Configuration
     /************************ Properties *************************************/
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+    /// <summary>
+    /// The default storage path used if not specified
+    /// </summary>
+    public static string DEFAULT_STORAGE_PATH = "/tmp";
+    /// <summary>
+    /// Key for the cache directory configuration setting
+    /// </summary>
+    public static string CACHE_DIRECTORY_KEY = "Cache:Directory";
+    /// <summary>
+    /// Key for the DisableHTTPS configuration setting
+    /// </summary>
+    public static string DISABLE_HTTPS_KEY = "ConnectionSettings:DisableHTTPS";
     /*----------------------- GetLocalStoragePath ---------------------------*/
     /// <summary>
     /// Gets the local storage path from the configuration item
@@ -25,7 +41,7 @@ namespace git_cache.Configuration
     /// </param>
     public static string GetLocalStoragePath(this IConfiguration config)
     {
-      return GetLocalStoragePath(config, "/tmp");
+      return GetLocalStoragePath(config, DEFAULT_STORAGE_PATH);
     } /* End of Function - GetLocalStoragePath */
 
     /*----------------------- GetLocalStoragePath ---------------------------*/
@@ -41,7 +57,7 @@ namespace git_cache.Configuration
     /// </param>
     public static string GetLocalStoragePath(this IConfiguration config, string defaultPath)
     {
-      return config.GetValue<string>("Cache:Directory", defaultPath);
+      return config.GetValue<string>(CACHE_DIRECTORY_KEY, defaultPath);
     } /* End of Function - GetLocalStoragePath */
 
     /*----------------------- DisableHTTPS ----------------------------------*/
@@ -56,27 +72,9 @@ namespace git_cache.Configuration
     /// </param>
     public static bool DisableHTTPS(this IConfiguration config, bool defaultValue = false)
     {
-      return config.GetValue<bool>("ConnectionSettings:DisableHTTPS", defaultValue);
+      return config.GetValue<bool>(DISABLE_HTTPS_KEY, defaultValue);
     } /* End of Function - DisableHTTPS */
-    /************************ Fields *****************************************/
-    /************************ Static *****************************************/
-
-    /*======================= PROTECTED =====================================*/
-    /************************ Events *****************************************/
-    /************************ Properties *************************************/
-    /************************ Construction ***********************************/
-    /************************ Methods ****************************************/
-    /************************ Fields *****************************************/
-    /************************ Static *****************************************/
-
-    /*======================= PRIVATE =======================================*/
-    /************************ Events *****************************************/
-    /************************ Properties *************************************/
-    /************************ Construction ***********************************/
-    /************************ Methods ****************************************/
-    /************************ Fields *****************************************/
-    /************************ Static *****************************************/
 
   } /* End of Class - ConfigurationHelper */
-}
+} /* end of namespace - git_cache.Configuration */
 /* End of document - ConfigurationHelper.cs */
