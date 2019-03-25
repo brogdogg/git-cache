@@ -3,6 +3,7 @@
  * Remarks: 
  */
 using git_cache.Git;
+using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using System;
@@ -122,7 +123,7 @@ namespace git_cache_mstest
 
     /*----------------------- CanHandleDisabledHTTPS ------------------------*/
     /// <summary>
-    /// 
+    /// Verifies the behavior when HTTPS is disabled
     /// </summary>
     [TestMethod]
     public void CanHandleDisabledHTTPS()
@@ -188,6 +189,103 @@ namespace git_cache_mstest
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
   } /* End of Class - LocalRepoRemoteRepoUnitTest */
+
+  /************************** LocalRepoUnitTest ******************************/
+  /// <summary>
+  /// Verifies the behavior of <see cref="LocalRepo"/>
+  /// </summary>
+  [TestClass]
+  public class LocalRepoUnitTest
+  {
+    /*======================= PUBLIC ========================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+    /*----------------------- ThrowsWhenRemoteRepoIsInvalid -----------------*/
+    /// <summary>
+    /// Verifies the <see cref="LocalRepo"/> constructor throws when remote
+    /// repo is null
+    /// </summary>
+    [TestMethod]
+    [ExpectedException(typeof(ArgumentNullException))]
+    public void ThrowsWhenRemoteRepoIsInvalid()
+    {
+      var localRepo =
+        new LocalRepo(null,
+                      new LocalConfiguration(Substitute.For<IConfiguration>()));
+    } /* End of Function - ThrowsWhenRemoteRepoIsInvalid */
+
+    /*----------------------- ThrowsWhenConfigIsInvalid ---------------------*/
+    /// <summary>
+    /// Verifies the <see cref="LocalRepo"/> constructor throws when the
+    /// configuration is null
+    /// </summary>
+    [TestMethod]
+    [ExpectedException(typeof(ArgumentNullException))]
+    public void ThrowsWhenConfigIsInvalid()
+    {
+      var remoteRepo = new RemoteRepo("server", "owner", "name", null);
+      var localRepo = new LocalRepo(remoteRepo, null);
+    } /* End of Function - ThrowsWhenConfigIsInvalid */
+
+    /*----------------------- ConstructsPathCorrectly -----------------------*/
+    /// <summary>
+    /// Verifies the <see cref="LocalRepo"/> constructs the local path
+    /// correctly.
+    /// </summary>
+    [TestMethod]
+    public void ConstructsPathCorrectly()
+    {
+      // Setup
+      var server = "server";
+      var owner = "owner";
+      var name = "name";
+      var config = Substitute.ForPartsOf<LocalConfiguration>(Substitute.For<IConfiguration>());
+      config.Path.Returns("/test");
+      var remoteRepo = new RemoteRepo(server, owner, name, null);
+
+      // Act
+      var localRepo = new LocalRepo(remoteRepo, config);
+
+      // Assert
+      Assert.AreEqual(System.IO.Path.Combine("/test", server, owner, name),
+                      localRepo.Path);
+    } /* End of Function - ConstructsPathCorrectly */
+
+    /*----------------------- CreatesLocalDirectory -------------------------*/
+    /// <summary>
+    /// Verifies the <see cref="LocalRepo"/> can create the local directory
+    /// without issue.
+    /// </summary>
+    [TestMethod]
+    public void CreatesLocalDirectory()
+    {
+      // Setup
+      var server = "server";
+      var owner = "owner";
+      var name = "name";
+      var basePath = System.IO.Path.GetTempPath();
+      var config = Substitute.ForPartsOf<LocalConfiguration>(Substitute.For<IConfiguration>());
+      config.Path.Returns(basePath);
+      var remoteRepo = new RemoteRepo(server, owner, name, null);
+      var srvPath = System.IO.Path.Combine(basePath, server);
+      var fullPath = System.IO.Path.Combine(srvPath, owner, name);
+
+      // Act
+      var localRepo = new LocalRepo(remoteRepo, config);
+
+      // Assert
+      if (System.IO.Directory.Exists(srvPath))
+        System.IO.Directory.Delete(srvPath, true);
+      Assert.IsFalse(System.IO.Directory.Exists(fullPath));
+      localRepo.CreateLocalDirectory();
+      Assert.IsTrue(System.IO.Directory.Exists(fullPath));
+      System.IO.Directory.Delete(srvPath, true);
+    } /* End of Function - CreatesLocalDirectory */
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+  } /* End of Class - LocalRepoUnitTest */
 
 } /* End of Namespace - git_cache_mstest */
 

@@ -45,7 +45,8 @@ namespace git_cache.Git
 
   /************************** RemoteRepo *************************************/
   /// <summary>
-  /// 
+  /// Represents a remote repository, which provides the URL used for a
+  /// configuration
   /// </summary>
   public class RemoteRepo
   {
@@ -125,14 +126,18 @@ namespace git_cache.Git
 
   /************************** LocalConfiguration *****************************/
   /// <summary>
-  /// 
+  /// Represents a local configuration object
   /// </summary>
   public class LocalConfiguration
   {
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
     /************************ Properties *************************************/
-    public string Path { get; private set; } = null;
+    /************************ Path *******************************************/
+    /// <summary>
+    /// Gets the path for storage
+    /// </summary>
+    public virtual string Path { get; private set; } = null;
     /************************ Construction ***********************************/
     /*----------------------- LocalConfiguration ----------------------------*/
     /// <summary>
@@ -166,16 +171,27 @@ namespace git_cache.Git
 
   /************************** LocalRepo **************************************/
   /// <summary>
-  /// 
+  /// Represents a local repository, mirroring a remote repository
   /// </summary>
   public class LocalRepo
   {
-
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
     /************************ Properties *************************************/
+    /************************ Remote *****************************************/
+    /// <summary>
+    /// Gets the remote repository associated with the local repository
+    /// </summary>
     public RemoteRepo Remote { get; private set; } = null;
+    /************************ Config *****************************************/
+    /// <summary>
+    /// Gets the configuration associated with the local repository
+    /// </summary>
     public LocalConfiguration Config { get; private set; } = null;
+    /************************ Path *******************************************/
+    /// <summary>
+    /// Gets the local path for the repository data
+    /// </summary>
     public string Path { get; private set; } = null;
     /************************ Construction ***********************************/
     /*----------------------- LocalRepo -------------------------------------*/
