@@ -12,7 +12,7 @@ namespace git_cache.Git
   /// <summary>
   /// Authentication information
   /// </summary>
-  public class AuthInfo
+  public class AuthInfo : IAuthInfo
   {
     /*===================== PUBLIC ========================================*/
     /********************** Events *****************************************/
@@ -48,7 +48,7 @@ namespace git_cache.Git
   /// Represents a remote repository, which provides the URL used for a
   /// configuration
   /// </summary>
-  public class RemoteRepo
+  public class RemoteRepo : IRemoteRepository
   {
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
@@ -82,7 +82,7 @@ namespace git_cache.Git
     /// <summary>
     /// Gets the authentication information associated with this repository
     /// </summary>
-    public AuthInfo Auth { get; } = null;
+    public IAuthInfo Auth { get; } = null;
     /************************ Construction ***********************************/
     /*----------------------- RemoteRepo ------------------------------------*/
     /// <summary>
@@ -103,7 +103,7 @@ namespace git_cache.Git
     /// <param name="disableHTTPS">
     /// Should secure be disabled
     /// </param>
-    public RemoteRepo(string server, string owner, string name, AuthInfo auth, bool disableHTTPS = false)
+    public RemoteRepo(string server, string owner, string name, IAuthInfo auth, bool disableHTTPS = false)
     {
       if (null == (Server = server))
         throw new ArgumentNullException("Must provide a property server name");
@@ -128,7 +128,7 @@ namespace git_cache.Git
   /// <summary>
   /// Represents a local configuration object
   /// </summary>
-  public class LocalConfiguration
+  public class LocalConfiguration : ILocalConfiguration
   {
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
@@ -173,7 +173,7 @@ namespace git_cache.Git
   /// <summary>
   /// Represents a local repository, mirroring a remote repository
   /// </summary>
-  public class LocalRepo
+  public class LocalRepo : ILocalRepository
   {
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
@@ -182,12 +182,12 @@ namespace git_cache.Git
     /// <summary>
     /// Gets the remote repository associated with the local repository
     /// </summary>
-    public RemoteRepo Remote { get; private set; } = null;
+    public IRemoteRepository Remote { get; private set; } = null;
     /************************ Config *****************************************/
     /// <summary>
     /// Gets the configuration associated with the local repository
     /// </summary>
-    public LocalConfiguration Config { get; private set; } = null;
+    public ILocalConfiguration Config { get; private set; } = null;
     /************************ Path *******************************************/
     /// <summary>
     /// Gets the local path for the repository data
@@ -204,7 +204,7 @@ namespace git_cache.Git
     /// <param name="config">
     /// A configuration object to use for the local repository
     /// </param>
-    public LocalRepo(RemoteRepo remoteRepo, LocalConfiguration config)
+    public LocalRepo(IRemoteRepository remoteRepo, ILocalConfiguration config)
     {
       if (null == (Remote = remoteRepo))
         throw new ArgumentNullException(
