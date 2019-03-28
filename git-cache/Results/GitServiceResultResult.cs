@@ -74,7 +74,11 @@ namespace git_cache.Results
       Stream gzipStream = new GZipStream(response.Body, CompressionLevel.Optimal, true);
       if (UseGZip)
         stream = new GZipStream(request.Body, CompressionMode.Decompress, true);
-      $"{Service} --stateless-rpc \"{Repository.Path}\"".Bash((code) => code != 0, response.Body, (writer) =>
+#warning REFACTOR TO GET RID OF COUPLING
+      var shell = new BashShell();
+#warning Refactor input writer lambda
+      shell.Execute($"{Service} --stateless-rpc \"{Repository.Path}\"",
+        (code) => code != 0, response.Body, (writer) =>
       {
         FileStream fs = new FileStream("/tmp/test", FileMode.Create, FileAccess.Write);
         using (var fsw = new StreamWriter(fs, Encoding.ASCII))
@@ -86,7 +90,7 @@ namespace git_cache.Results
             using (var inputReader = new StreamReader(stream, Encoding.UTF8, true, 8096, true))
             {
               string line = null;
-              while(null != (line = inputReader.ReadLine()))
+              while (null != (line = inputReader.ReadLine()))
               {
                 inputWriter.WriteLine(line);
                 fsw.WriteLine(line);

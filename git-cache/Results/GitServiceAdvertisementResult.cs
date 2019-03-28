@@ -67,7 +67,10 @@ namespace git_cache.Results
       response.Headers.Add("Cache-Control", "no-cache");
       var bytes = Encoding.UTF8.GetBytes($"001e# service={Service}\n0000");
       response.Body.Write(bytes, 0, bytes.Length);
-      $"{Service} --stateless-rpc --advertise-refs \"{Repository.Path}\"".Bash((code) => code != 0, response.Body);
+#warning REFACTOR TO GET RID OF COUPLING
+      var shell = new BashShell();
+      shell.Execute($"{Service} --stateless-rpc --advertise-refs \"{Repository.Path}\"",
+        (code) => code != 0, response.Body);
       return;
     } /* End of Function - ExecuteResult */
     /************************ Fields *****************************************/

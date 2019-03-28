@@ -7,7 +7,7 @@ using git_cache.IO;
 using System;
 using System.IO;
 
-namespace git_cache_mstest
+namespace git_cache_mstest.IO
 {
 
   /************************** DataReceivedEventArgsUnitTest ******************/

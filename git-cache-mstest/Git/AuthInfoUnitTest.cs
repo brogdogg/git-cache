@@ -7,7 +7,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 using System.Text;
 
-namespace git_cache_mstest
+namespace git_cache_mstest.Git
 {
   /************************** AuthInfoUnitTest *******************************/
   /// <summary>

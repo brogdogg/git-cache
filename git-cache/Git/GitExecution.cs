@@ -19,7 +19,9 @@ namespace git_cache.Git
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
     /************************ Properties *************************************/
+    public IShell Shell { get; } = null;
     /************************ Construction ***********************************/
+    public GitExecuter(IShell shell) { Shell = shell; }
     /************************ Methods ****************************************/
     /************************ Fields *****************************************/
     /*----------------------- Clone -----------------------------------------*/
@@ -30,7 +32,7 @@ namespace git_cache.Git
     public string Clone(ILocalRepository local)
     {
       local.CreateLocalDirectory();
-      return $"git clone --quiet --mirror \"{local.Remote.GitUrl}\" \"{local.Path}\"".Bash();
+      return Shell.Execute($"git clone --quiet --mirror \"{local.Remote.GitUrl}\" \"{local.Path}\"");
     } /* End of Function - Clone */
 
     /*----------------------- CloneAsync ------------------------------------*/
@@ -50,8 +52,8 @@ namespace git_cache.Git
     /// <param name="local"></param>
     public string Fetch(ILocalRepository local)
     {
-      $"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"".Bash();
-      return $"git -C \"{local.Path}\" fetch --quiet".Bash();
+      Shell.Execute($"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"");
+      return Shell.Execute($"git -C \"{local.Path}\" fetch --quiet");
     } /* End of Function - Fetch */
 
     /*----------------------- FetchAsync ------------------------------------*/
@@ -61,8 +63,8 @@ namespace git_cache.Git
     /// <param name="local"></param>
     public async Task<string> FetchAsync(ILocalRepository local)
     {
-      await $"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"".BashAsync();
-      return await $"git -C \"{local.Path}\" fetch --quiet".BashAsync();
+      await Shell.ExecuteAsync($"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"");
+      return await Shell.ExecuteAsync($"git -C \"{local.Path}\" fetch --quiet");
     } /* End of Function - FetchAsync */
     /************************ Static *****************************************/
 
@@ -92,7 +94,9 @@ namespace git_cache.Git
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
     /************************ Properties *************************************/
+    public IShell Shell { get; } = null;
     /************************ Construction ***********************************/
+    public GitLFSExecutor(IShell shell) { Shell = shell; }
     /************************ Methods ****************************************/
     /*----------------------- Fetch -----------------------------------------*/
     /// <summary>
@@ -101,7 +105,7 @@ namespace git_cache.Git
     /// <param name="local"></param>
     public string Fetch(ILocalRepository local)
     {
-      return $"cd \"{local.Path}\" && git-lfs fetch".Bash();
+      return Shell.Execute($"cd \"{local.Path}\" && git-lfs fetch");
     } /* End of Function - Fetch */
 
     /*----------------------- FetchAsync ------------------------------------*/
@@ -132,46 +136,5 @@ namespace git_cache.Git
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
   } /* End of Class - GitLFSExecutor */
-
-  /************************** GitExecution ***********************************/
-  /// <summary>
-  /// Extension class to allow git operations on a <see cref="ILocalRepository"/>
-  /// object.
-  /// </summary>
-  public static class GitExecution
-  {
-    /*======================= PUBLIC ========================================*/
-    /************************ Events *****************************************/
-    /************************ Properties *************************************/
-    /************************ Construction ***********************************/
-    /************************ Methods ****************************************/
-    /************************ Fields *****************************************/
-    /************************ Static *****************************************/
-    /*----------------------- UpdateLocalAsync ------------------------------*/
-    /// <summary>
-    /// Updates the local storage in async fashion
-    /// </summary>
-    /// <param name="local">
-    /// The local repository
-    /// </param>
-    //public static async Task<string> UpdateLocalAsync(this ILocalRepository local)
-    //{
-    //  string output = null;
-    //  try
-    //  {
-    //    // First try to fetch the details...
-    //    output = await FetchAsync(local);
-    //    await LFSFetchAsync(local);
-    //  }
-    //  catch (Exception)
-    //  {
-    //    // If fetch failed, then we must need to clone everything!
-    //    output = await CloneAsync(local);
-    //    await LFSFetchAsync(local);
-    //  }
-    //  return output;
-    //} /* End of Function - UpdateLocalAsync */
-  } /* End of Class - GitExecution */
-
 }
 /* End of document - GitExecution.cs */

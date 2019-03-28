@@ -3,27 +3,41 @@
  * Remarks: 
  */
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace git_cache.Git
 {
   /************************** GitContext *************************************/
   /// <summary>
-  /// 
+  /// Basic implementation of the <see cref="IGitContext"/> interface
   /// </summary>
   public class GitContext : IGitContext
   {
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
     /************************ Properties *************************************/
+    /************************ LocalFactory ***********************************/
+    /// <summary>
+    /// Gets the local repository factory
+    /// </summary>
     public ILocalRepositoryFactory LocalFactory { get; } = null;
 
+    /************************ RemoteFactory **********************************/
+    /// <summary>
+    /// Gets the remote repository factory
+    /// </summary>
     public IRemoteRepositoryFactory RemoteFactory { get; } = null;
 
+    /************************ GitExecuter ************************************/
+    /// <summary>
+    /// Gets the git executer
+    /// </summary>
     public IGitExecuter GitExecuter { get; } = null;
 
+    /************************ LFSExecuter ************************************/
+    /// <summary>
+    /// Gets the LFS executer
+    /// </summary>
     public IGitLFSExecuter LFSExecuter { get; } = null;
     /************************ Construction ***********************************/
     /*----------------------- GitContext ------------------------------------*/

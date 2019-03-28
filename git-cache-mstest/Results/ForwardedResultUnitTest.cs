@@ -14,7 +14,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Text;
 
-namespace git_cache_mstest
+namespace git_cache_mstest.Results
 {
   /************************** ForwardedResultUnitTest ************************/
   /// <summary>

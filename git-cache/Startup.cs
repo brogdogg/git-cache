@@ -3,10 +3,12 @@
  * Remarks: 
  */
 using git_cache.Git;
+using git_cache.Shell;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace git_cache
 {
@@ -24,11 +26,6 @@ namespace git_cache
     /// Gets the configuration passed in during construction
     /// </summary>
     public IConfiguration Configuration { get; } /* End of Property - Configuration */
-    public IRemoteRepositoryFactory  RemoteRepoFactory { get; }
-    public ILocalRepositoryFactory LocalRepoFactory { get; }
-    public IGitContext Context { get; } = null;
-    public IGitExecuter GitExec { get; } = null;
-    public IGitLFSExecuter LFSExec { get; } = null;
     /************************ Construction ***********************************/
     /*----------------------- Startup ---------------------------------------*/
     /// <summary>
@@ -40,15 +37,6 @@ namespace git_cache
     public Startup(IConfiguration configuration)
     {
       Configuration = configuration;
-      RemoteRepoFactory = new RemoteFactory();
-      LocalRepoFactory = new LocalFactory();
-      GitExec = new GitExecuter();
-      LFSExec = new GitLFSExecutor();
-      Context = new GitContext(
-        LocalRepoFactory,
-        RemoteRepoFactory,
-        GitExec,
-        LFSExec);
     } /* End of Function - Startup */
 
     /************************ Methods ****************************************/
@@ -61,26 +49,34 @@ namespace git_cache
     public void ConfigureServices(IServiceCollection services)
     {
       services.AddMvc();
+      // Go ahead and add the configuration we were given
       services.AddSingleton(Configuration);
-      services.AddSingleton(RemoteRepoFactory);
-      services.AddSingleton(LocalRepoFactory);
-      services.AddSingleton(Context);
+      // Add a bash shell to the services
+      services.AddScoped<IShell, BashShell>();
+      // And add the Git Context services
+      ConfigureGitContextService(services);
     } /* End of Function - ConfigureServices */
 
-    public class RemoteFactory : IRemoteRepositoryFactory
+    /*----------------------- ConfigureGitContextService --------------------*/
+    /// <summary>
+    /// Adds the appropriate services for the Git Context
+    /// </summary>
+    /// <param name="services">
+    /// Service collection
+    /// </param>
+    public void ConfigureGitContextService(IServiceCollection services)
     {
-      public IRemoteRepository Build(string server, string owner, string name, string auth)
-      {
-        return new RemoteRepository(server, owner, name, AuthInfo.ParseAuth(auth));
-      }
-    }
-    public class LocalFactory : ILocalRepositoryFactory
-    {
-      public ILocalRepository Build(IRemoteRepository repo, IConfiguration config)
-      {
-        return new LocalRepository(repo, config);
-      }
-    }
+      if (null == services)
+        throw new ArgumentNullException("Service collection cannot be null");
+      // Add services for what is needed for the Git context
+      services.AddScoped<IRemoteRepositoryFactory, RemoteFactory>();
+      services.AddScoped<ILocalRepositoryFactory, LocalFactory>();
+      services.AddScoped<IGitExecuter, GitExecuter>();
+      services.AddScoped<IGitLFSExecuter, GitLFSExecutor>();
+      // Finally add the git context service
+      services.AddScoped<IGitContext, GitContext>();
+    } /* End of Function - ConfigureGitContextService */
+
     /*----------------------- Configure -------------------------------------*/
     /// <summary>
     /// This method gets called by the runtime. Use this method to configure
@@ -98,6 +94,27 @@ namespace git_cache
     } /* End of Function - Configure */
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
+    /************************ Types ******************************************/
+    /// <summary>
+    /// 
+    /// </summary>
+    public class RemoteFactory : IRemoteRepositoryFactory
+    {
+      public IRemoteRepository Build(string server, string owner, string name, string auth)
+      {
+        return new RemoteRepository(server, owner, name, AuthInfo.ParseAuth(auth));
+      }
+    }
+    /// <summary>
+    /// 
+    /// </summary>
+    public class LocalFactory : ILocalRepositoryFactory
+    {
+      public ILocalRepository Build(IRemoteRepository repo, IConfiguration config)
+      {
+        return new LocalRepository(repo, config);
+      }
+    }
 
     /*======================= PROTECTED =====================================*/
     /************************ Events *****************************************/

@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using System;
 
-namespace git_cache_mstest
+namespace git_cache_mstest.Git
 {
   /************************** GitControllerUnitTest **************************/
   /// <summary>

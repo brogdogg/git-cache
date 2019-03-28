@@ -7,7 +7,7 @@ using git_cache.Configuration;
 using NSubstitute;
 using Microsoft.Extensions.Configuration;
 
-namespace git_cache_mstest
+namespace git_cache_mstest.Configuration
 {
   /************************** ConfigurationHelperUnitTest ********************/
   /// <summary>

@@ -6,7 +6,7 @@ using git_cache.Git;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
 
-namespace git_cache_mstest
+namespace git_cache_mstest.Git
 {
   /************************** RemoteRepositoryUnitTest ***********************/
   /// <summary>

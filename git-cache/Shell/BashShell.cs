@@ -1,5 +1,5 @@
 ﻿/******************************************************************************
- * File...: ShellHelper.cs
+ * File...: BashShell.cs
  * Remarks: 
  */
 using System;
@@ -10,49 +10,49 @@ using System.Threading.Tasks;
 
 namespace git_cache.Shell
 {
-  /************************** ShellHelper ************************************/
+
+  /************************** BashShell **************************************/
   /// <summary>
-  /// Static class with string extension methods used to execute BASH commands
+  /// Represents a bash shell instance of <see cref="IShell"/> interface.
   /// </summary>
-  public static class ShellHelper
+  public class BashShell : IShell
   {
+
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
     /************************ Properties *************************************/
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
-    /************************ Fields *****************************************/
-    /************************ Static *****************************************/
-    /*----------------------- Bash ------------------------------------------*/
+    /*----------------------- Execute ---------------------------------------*/
     /// <summary>
     /// 
     /// </summary>
     /// <param name="command"></param>
-    public static string Bash(this string command)
+    public string Execute(string command)
     {
-      return Bash(command, (exitCode) => exitCode != 0);
-    } /* End of Function - Bash */
+      return Execute(command, (exitCode) => exitCode != 0);
+    } /* End of Function - Execute */
 
-    /*----------------------- Bash ------------------------------------------*/
+    /*----------------------- Execute ---------------------------------------*/
     /// <summary>
     /// 
     /// </summary>
     /// <param name="command"></param>
     /// <param name="isExitCodeFailure"></param>
-    public static string Bash(this string command, Func<int, bool> isExitCodeFailure)
+    public string Execute(string command, Func<int, bool> isExitCodeFailure)
     {
       string retval = "";
       using (var stream = new MemoryStream())
       {
-        Bash(command, isExitCodeFailure, stream);
+        Execute(command, isExitCodeFailure, stream);
         stream.Position = 0;
         StreamReader sr = new StreamReader(stream);
         retval = sr.ReadToEnd();
       }
       return retval;
-    } // end of function - Bash
+    } /* End of Function - Execute */
 
-    /*----------------------- Bash ------------------------------------------*/
+    /*----------------------- Execute ---------------------------------------*/
     /// <summary>
     /// 
     /// </summary>
@@ -60,7 +60,7 @@ namespace git_cache.Shell
     /// <param name="isExitCodeFailure"></param>
     /// <param name="outStream"></param>
     /// <param name="inputWriter"></param>
-    public static int Bash(this string command, Func<int, bool> isExitCodeFailure, Stream outStream, Action<StreamWriter> inputWriter=null)
+    public int Execute(string command, Func<int, bool> isExitCodeFailure, Stream outStream, Action<StreamWriter> inputWriter = null)
     {
       int retval = 0;
       var escapedArgs = command.Replace("\"", "\\\"");
@@ -105,44 +105,44 @@ namespace git_cache.Shell
         throw new InvalidProgramException($"Failed to execute command; {process.StandardError.ReadToEnd()}");
       } // end of if - process exited with error
       return retval;
-    } // end of function - Bash
+    } /* End of Function - Execute */
 
-    /*----------------------- BashAsync -------------------------------------*/
+    /*----------------------- ExecuteAsync ----------------------------------*/
     /// <summary>
-    /// Executes the bash command asynchronously.
+    /// 
     /// </summary>
-    /// <param name="command">
-    /// Bash command to execute
-    /// </param>
-    /// <param name="isExitCodeFailure">
-    /// Functor to decide if the exit code is a failure or not
-    /// </param>
-    /// <returns>
-    /// Task for the execution
-    /// </returns>
-    public static Task<string> BashAsync(this string command, Func<int, bool> isExitCodeFailure)
+    /// <param name="command"></param>
+    public Task<string> ExecuteAsync(string command)
     {
-      return Task.Run(() => Bash(command, isExitCodeFailure));
-    } // end of function - BashAsync
+      return Task.Run(() => Execute(command));
+    } /* End of Function - ExecuteAsync */
 
-    /*----------------------- BashAsync -------------------------------------*/
+    /*----------------------- ExecuteAsync ----------------------------------*/
     /// <summary>
-    /// Executes the bash command asynchronously
+    /// 
     /// </summary>
-    /// <param name="command">
-    /// Command to execute
-    /// </param>
-    /// <remarks>
-    /// Assumes any exit code that is not zero is a failure
-    /// </remarks>
-    /// <returns>
-    /// Task for the execution
-    /// </returns>
-    public static Task<string> BashAsync(this string command)
+    /// <param name="command"></param>
+    /// <param name="isExitCodeFailure"></param>
+    public Task<string> ExecuteAsync(string command, Func<int, bool> isExitCodeFailure)
     {
-      return Task.Run(() => Bash(command));
-    } // end of function - BashAsync
+      return Task.Run(() => Execute(command, isExitCodeFailure));
+    } /* End of Function - ExecuteAsync */
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
 
+    /*======================= PROTECTED =====================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+
+    /*======================= PRIVATE =======================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
     /*----------------------- StartNewReader --------------------------------*/
     /// <summary>
     /// Starts a new asynchronous StreamReader object on the specified stream
@@ -162,23 +162,8 @@ namespace git_cache.Shell
           },
           false);
     } /* End of Function - StartNewReader */
-
-    /*======================= PROTECTED =====================================*/
-    /************************ Events *****************************************/
-    /************************ Properties *************************************/
-    /************************ Construction ***********************************/
-    /************************ Methods ****************************************/
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
-
-    /*======================= PRIVATE =======================================*/
-    /************************ Events *****************************************/
-    /************************ Properties *************************************/
-    /************************ Construction ***********************************/
-    /************************ Methods ****************************************/
-    /************************ Fields *****************************************/
-    /************************ Static *****************************************/
-
-  } // end of class - ShellHelper
+  } /* End of Class - BashShell */
 }
-/* End of document - ShellHelper.cs */
+/* End of document - BashShell.cs */
