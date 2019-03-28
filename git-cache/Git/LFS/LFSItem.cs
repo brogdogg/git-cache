@@ -20,7 +20,7 @@ namespace git_cache.Git.LFS
     /// Gets/Sets the OID of the LFS object
     /// </summary>
     [DataMember(Name = "oid")]
-    public string OID { get; set; }
+    public string OID { get; set; } = null;
 
     /// <summary>
     /// Gets/Sets byte size of the LFS object. Must be at least zero.
