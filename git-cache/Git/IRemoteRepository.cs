@@ -46,4 +46,32 @@ namespace git_cache.Git
     /************************ Methods ****************************************/
   } /* End of Interface - IRemoteRepository */
 
+  /************************** IRemoteRepositoryFactory ***********************/
+  /// <summary>
+  /// Represents a factory class capable of building
+  /// <see cref="IRemoteRepository"/> objects
+  /// </summary>
+  public interface IRemoteRepositoryFactory
+  {
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Methods ****************************************/
+    /// <summary>
+    /// Builds a <see cref="IRemoteRepository"/> object
+    /// </summary>
+    /// <param name="server">
+    /// Remote server address
+    /// </param>
+    /// <param name="owner">
+    /// Repository owner
+    /// </param>
+    /// <param name="name">
+    /// Name of the repository
+    /// </param>
+    /// <param name="auth">
+    /// (Optional) authorization object
+    /// </param>
+    /// <returns></returns>
+    IRemoteRepository Build(string server, string owner, string name, string auth);
+  } /* End of Interface - IRemoteRepositoryFactory */
 }/* End of document - IRemoteRepository.cs */

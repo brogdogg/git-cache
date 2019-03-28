@@ -39,7 +39,7 @@ namespace git_cache.Configuration
     /// <param name="config">
     /// Configuration to get the path from
     /// </param>
-    public static string GetLocalStoragePath(this IConfiguration config)
+    public static string GetLocalStoragePath(IConfiguration config)
     {
       return GetLocalStoragePath(config, DEFAULT_STORAGE_PATH);
     } /* End of Function - GetLocalStoragePath */
@@ -55,7 +55,7 @@ namespace git_cache.Configuration
     /// The default path to use, if the item does not exists in the
     /// configuration
     /// </param>
-    public static string GetLocalStoragePath(this IConfiguration config, string defaultPath)
+    public static string GetLocalStoragePath(IConfiguration config, string defaultPath)
     {
       return config.GetValue<string>(CACHE_DIRECTORY_KEY, defaultPath);
     } /* End of Function - GetLocalStoragePath */
@@ -70,7 +70,7 @@ namespace git_cache.Configuration
     /// <param name="defaultValue">
     /// Able to provide a default value, if not specified false is given
     /// </param>
-    public static bool DisableHTTPS(this IConfiguration config, bool defaultValue = false)
+    public static bool DisableHTTPS(IConfiguration config, bool defaultValue = false)
     {
       return config.GetValue<bool>(DISABLE_HTTPS_KEY, defaultValue);
     } /* End of Function - DisableHTTPS */

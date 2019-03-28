@@ -2,6 +2,7 @@
  * File...: Startup.cs
  * Remarks: 
  */
+using git_cache.Git;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -23,6 +24,11 @@ namespace git_cache
     /// Gets the configuration passed in during construction
     /// </summary>
     public IConfiguration Configuration { get; } /* End of Property - Configuration */
+    public IRemoteRepositoryFactory  RemoteRepoFactory { get; }
+    public ILocalRepositoryFactory LocalRepoFactory { get; }
+    public IGitContext Context { get; } = null;
+    public IGitExecuter GitExec { get; } = null;
+    public IGitLFSExecuter LFSExec { get; } = null;
     /************************ Construction ***********************************/
     /*----------------------- Startup ---------------------------------------*/
     /// <summary>
@@ -34,6 +40,15 @@ namespace git_cache
     public Startup(IConfiguration configuration)
     {
       Configuration = configuration;
+      RemoteRepoFactory = new RemoteFactory();
+      LocalRepoFactory = new LocalFactory();
+      GitExec = new GitExecuter();
+      LFSExec = new GitLFSExecutor();
+      Context = new GitContext(
+        LocalRepoFactory,
+        RemoteRepoFactory,
+        GitExec,
+        LFSExec);
     } /* End of Function - Startup */
 
     /************************ Methods ****************************************/
@@ -46,9 +61,26 @@ namespace git_cache
     public void ConfigureServices(IServiceCollection services)
     {
       services.AddMvc();
-      services.AddSingleton<IConfiguration>(Configuration);
+      services.AddSingleton(Configuration);
+      services.AddSingleton(RemoteRepoFactory);
+      services.AddSingleton(LocalRepoFactory);
+      services.AddSingleton(Context);
     } /* End of Function - ConfigureServices */
 
+    public class RemoteFactory : IRemoteRepositoryFactory
+    {
+      public IRemoteRepository Build(string server, string owner, string name, string auth)
+      {
+        return new RemoteRepository(server, owner, name, AuthInfo.ParseAuth(auth));
+      }
+    }
+    public class LocalFactory : ILocalRepositoryFactory
+    {
+      public ILocalRepository Build(IRemoteRepository repo, IConfiguration config)
+      {
+        return new LocalRepository(repo, config);
+      }
+    }
     /*----------------------- Configure -------------------------------------*/
     /// <summary>
     /// This method gets called by the runtime. Use this method to configure

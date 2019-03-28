@@ -8,6 +8,7 @@ using git_cache.Git.LFS;
 using git_cache.Results;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -35,6 +36,10 @@ namespace git_cache.Controllers
     /// Holding spot for the injected configuration
     /// </summary>
     IConfiguration Configuration { get; } = null;
+    /// <summary>
+    /// 
+    /// </summary>
+    IGitContext GitContext { get; } = null;
     /************************ Construction ***********************************/
     /*----------------------- GitController ---------------------------------*/
     /// <summary>
@@ -43,12 +48,22 @@ namespace git_cache.Controllers
     /// <param name="config">
     /// application configuration object
     /// </param>
-    public GitController(IConfiguration config)
+    /// <param name="localFactory">
+    /// Factory for building <see cref="ILocalRepository"/> objects
+    /// </param>
+    /// <param name="remoteFactory">
+    /// Factory for building <see cref="IRemoteRepository"/> objects
+    /// </param>
+    public GitController(IConfiguration config,
+      IGitContext gitContext)
       : base()
     {
       if (null == (Configuration = config))
         throw new ArgumentNullException("A valid configuration must be provided");
+      if (null == (GitContext = gitContext))
+        throw new ArgumentNullException("A valid git context must be provided");
     } // end of function - GitController
+
     /************************ Methods ****************************************/
     // GET: api/Git/{server}/{repoOwner}/{repo}/info/refs?service={service}
     /// <summary>
@@ -76,13 +91,13 @@ namespace git_cache.Controllers
       if (null != (retval = await CheckAuthorizationAsync(repo)))
         return retval;
       // Create a local repository based on the remote repo
-      ILocalRepository local = new LocalRepo(repo, new LocalConfiguration(Configuration));
+      var local = GitContext.LocalFactory.Build(repo, Configuration);
       try
       {
         // Updates our local cache, if it has never been downloaded then it
         // will be cloned, otherwise just a fetch is performed to update
         // the local copy
-        await GitExecution.UpdateLocalAsync(local);
+        await GitContext.UpdateLocalAsync(local);
         // Then create a custom git service advertisement result to send
         // back to the client, basically forwarding everything we just
         // updated to the client now
@@ -119,7 +134,7 @@ namespace git_cache.Controllers
       var repo = BuildRemoteRepo(destinationServer, repositoryOwner, repository, authorization);
       if (null != (retval = await CheckAuthorizationAsync(repo)))
         return retval;
-      ILocalRepository local = new LocalRepo(repo, new LocalConfiguration(Configuration));
+      var local = GitContext.LocalFactory.Build(repo, Configuration);
       try
       {
         retval = new GitServiceResultResult(service, local, contentEncoding == "gzip");
@@ -327,10 +342,9 @@ namespace git_cache.Controllers
     /// <returns></returns>
     protected ILocalRepository GetLocalRepo(string server, string owner, string name, string auth = null)
     {
-      return new LocalRepo(
-        BuildRemoteRepo(server, owner, name, auth),
-        new LocalConfiguration(this.Configuration)
-        );
+      return GitContext.LocalFactory.Build(
+        GitContext.RemoteFactory.Build(server, owner, name, auth),
+        Configuration);
     } // end of function - GetLocalRepo
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
@@ -340,22 +354,6 @@ namespace git_cache.Controllers
     /************************ Properties *************************************/
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
-    /*----------------------- ParseAuth -------------------------------------*/
-    /// <summary>
-    /// Parses the string for a basic authorization entry
-    /// </summary>
-    /// <param name="auth"></param>
-    private IAuthInfo ParseAuth(string auth)
-    {
-      var pair = auth.Split(" ");
-      return new AuthInfo
-        {
-          Scheme = pair[0],
-          RawAuth = auth,
-          Decoded = Encoding.UTF8.GetString(Convert.FromBase64String(pair[1])),
-          Encoded = pair[1]
-        };
-    } // end of function - ParseAuth
 
     /// <summary>
     /// Authenticates asynchronously
@@ -409,14 +407,10 @@ namespace git_cache.Controllers
       string repo,
       string authorization)
     {
-      IAuthInfo authInfo = null;
-      if (null != authorization)
-        authInfo = ParseAuth(authorization);
-      return new RemoteRepo(destinationServer,
-                            repoOwner,
-                            repo,
-                            authInfo,
-                            Configuration.DisableHTTPS());
+      return GitContext.RemoteFactory.Build(destinationServer,
+        repoOwner,
+        repo,
+        authorization);
     } // end of function - BuildRemoteRepo
 
     /// <summary>
