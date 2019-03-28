@@ -12,7 +12,7 @@ namespace git_cache_mstest.Git.LFS
 {
   /************************** LFSErrorUnitTest *******************************/
   /// <summary>
-  /// 
+  /// Tests the <see cref="LFSError"/> object
   /// </summary>
   [TestClass]
   public class LFSErrorUnitTest
@@ -24,7 +24,8 @@ namespace git_cache_mstest.Git.LFS
     /************************ Methods ****************************************/
     /*----------------------- DefaultsGetsSets ------------------------------*/
     /// <summary>
-    /// 
+    /// Verifies we can construct with defaults and get/set values for
+    /// properties
     /// </summary>
     [TestMethod]
     public void DefaultsGetsSets()
