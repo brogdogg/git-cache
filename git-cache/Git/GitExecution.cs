@@ -1,76 +1,140 @@
-﻿using git_cache.Shell;
+﻿/******************************************************************************
+ * File...: GitExecution.cs
+ * Remarks: 
+ */
+using git_cache.Shell;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace git_cache.Git
 {
-  public static class GitExecution
+
+  /************************** GitExecuter ************************************/
+  /// <summary>
+  /// 
+  /// </summary>
+  public class GitExecuter : IGitExecuter
   {
+
+    /*======================= PUBLIC ========================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    public IShell Shell { get; } = null;
+    /************************ Construction ***********************************/
+    public GitExecuter(IShell shell) { Shell = shell; }
+    /************************ Methods ****************************************/
+    /************************ Fields *****************************************/
+    /*----------------------- Clone -----------------------------------------*/
     /// <summary>
-    /// Clones the repository
+    /// 
     /// </summary>
-    /// <param name="repo"></param>
-    /// <param name="config"></param>
-    /// <returns></returns>
-    public static string Clone(this LocalRepo local)
+    /// <param name="local"></param>
+    public string Clone(ILocalRepository local)
     {
       local.CreateLocalDirectory();
-      return $"git clone --quiet --mirror \"{local.Remote.GitUrl}\" \"{local.Path}\"".Bash();
-    }
+      return Shell.Execute($"git clone --quiet --mirror \"{local.Remote.GitUrl}\" \"{local.Path}\"");
+    } /* End of Function - Clone */
 
-    public static Task<string> CloneAsync(this LocalRepo local)
+    /*----------------------- CloneAsync ------------------------------------*/
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="local"></param>
+    public Task<string> CloneAsync(ILocalRepository local)
     {
       return Task.Run(() => Clone(local));
-    }
+    } /* End of Function - CloneAsync */
 
-    public static string LFSFetch(this LocalRepo local)
-    {
-      return $"cd \"{local.Path}\" && git-lfs fetch".Bash();
-    }
-
-    public static Task<string> LFSFetchAsync(this LocalRepo local)
-    {
-      return Task.Run(() => LFSFetch(local));
-    }
-
+    /*----------------------- Fetch -----------------------------------------*/
     /// <summary>
-    /// Fetches for the repository, assumes already exists...
+    /// 
     /// </summary>
-    /// <param name="repo"></param>
-    /// <param name="config"></param>
-    /// <returns></returns>
-    public static string Fetch(this LocalRepo local)
+    /// <param name="local"></param>
+    public string Fetch(ILocalRepository local)
     {
-      $"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"".Bash();
-      return $"git -C \"{local.Path}\" fetch --quiet".Bash();
-    }
+      Shell.Execute($"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"");
+      return Shell.Execute($"git -C \"{local.Path}\" fetch --quiet");
+    } /* End of Function - Fetch */
 
-
-    public static async Task<string> FetchAsync(this LocalRepo local)
+    /*----------------------- FetchAsync ------------------------------------*/
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="local"></param>
+    public async Task<string> FetchAsync(ILocalRepository local)
     {
-      await $"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"".BashAsync();
-      return await $"git -C \"{local.Path}\" fetch --quiet".BashAsync();
-    }
+      await Shell.ExecuteAsync($"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"");
+      return await Shell.ExecuteAsync($"git -C \"{local.Path}\" fetch --quiet");
+    } /* End of Function - FetchAsync */
+    /************************ Static *****************************************/
 
-    public static async Task<string> UpdateLocalAsync(this LocalRepo local)
+    /*======================= PROTECTED =====================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+
+    /*======================= PRIVATE =======================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+  } /* End of Class - GitExecuter */
+
+  /************************** GitLFSExecutor *********************************/
+  /// <summary>
+  /// 
+  /// </summary>
+  public class GitLFSExecutor : IGitLFSExecuter
+  {
+    /*======================= PUBLIC ========================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    public IShell Shell { get; } = null;
+    /************************ Construction ***********************************/
+    public GitLFSExecutor(IShell shell) { Shell = shell; }
+    /************************ Methods ****************************************/
+    /*----------------------- Fetch -----------------------------------------*/
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="local"></param>
+    public string Fetch(ILocalRepository local)
     {
-      string output = null;
-      try
-      {
-        // First try to fetch the details...
-        output = await FetchAsync(local);
-        await LFSFetchAsync(local);
-      }
-      catch (Exception)
-      {
-        // If fetch failed, then we must need to clone everything!
-        output = await CloneAsync(local);
-        await LFSFetchAsync(local);
-      }
-      return output;
-    }
-  }
+      return Shell.Execute($"cd \"{local.Path}\" && git-lfs fetch");
+    } /* End of Function - Fetch */
 
+    /*----------------------- FetchAsync ------------------------------------*/
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="local"></param>
+    public Task<string> FetchAsync(ILocalRepository local)
+    {
+      return Task.Run(() => Fetch(local));
+    } /* End of Function - FetchAsync */
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+
+    /*======================= PROTECTED =====================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+
+    /*======================= PRIVATE =======================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+  } /* End of Class - GitLFSExecutor */
 }
+/* End of document - GitExecution.cs */

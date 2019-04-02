@@ -1,4 +1,8 @@
-﻿using System;
+﻿/******************************************************************************
+ * File...: StreamReader.cs
+ * Remarks: 
+ */
+using System;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -7,11 +11,15 @@ using System.Threading.Tasks;
 namespace git_cache.IO
 {
 
+  /************************** DataReceivedEventArgs **************************/
   /// <summary>
   /// Event arguments for the Data Received event
   /// </summary>
   public class DataReceivedEventArgs : EventArgs
   {
+    /*======================= PUBLIC ========================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
     /// <summary>
     /// Buffer containing the received data
     /// </summary>
@@ -20,7 +28,8 @@ namespace git_cache.IO
     /// The total number of bytes available in the buffer
     /// </summary>
     public int ByteCount { get; }
-
+    /************************ Construction ***********************************/
+    /*----------------------- DataReceivedEventArgs -------------------------*/
     /// <summary>
     /// Constructor
     /// </summary>
@@ -36,20 +45,137 @@ namespace git_cache.IO
       ByteCount = byteCount;
       return;
     } // end of function - DataReceivedEventArgs
+    /************************ Methods ****************************************/
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
   } // end of class - DataReceivedEventArgs
 
+  /************************** StringStreamReader *****************************/
   /// <summary>
   /// Asynchronous stream reader, providing a custom event when data
   /// is available.
   /// </summary>
   public class StringStreamReader : IDisposable
   {
-
+    /*======================= PUBLIC ========================================*/
+    /************************ Events *****************************************/
     /// <summary>
     /// Event for when data is received
     /// </summary>
     public event EventHandler<DataReceivedEventArgs> DataReceived;
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /*----------------------- StringStreamReader ----------------------------*/
+    /// <summary>
+    /// Private constructor
+    /// </summary>
+    /// <param name="stream">
+    /// Source stream to read from
+    /// </param>
+    /// <param name="closeStream">
+    /// Close the base stream on disposal?
+    /// </param>
+    /// <param name="handler">
+    /// </param>
+    private StringStreamReader(
+      Stream stream,
+      EventHandler<DataReceivedEventArgs> handler,
+      bool closeStream)
+    {
+      if (null == (BaseStream = stream))
+        throw new ArgumentNullException("Invalid stream specified, must be non-null");
+      BufferSize = 8096 * 4; // 32k
+      DataReceived = handler;
+      CancelTokenSource = new CancellationTokenSource();
+      CloseStream = closeStream;
+      // Make sure to call this last, since it uses other
+      // class members
+      DataReader = ReadDataAsync();
+    } // end of function - StringStreamReader
 
+    /*----------------------- ~StringStreamReader ---------------------------*/
+    /// <summary>
+    /// Destructor
+    /// </summary>
+    ~StringStreamReader()
+    {
+      Dispose(false);
+    } // end of function - ~StringStreamReader
+    /************************ Methods ****************************************/
+    /// <summary>
+    /// Cancels the current read operations
+    /// </summary>
+    public void CancelReadOperations()
+    {
+      CancelTokenSource.Cancel();
+      return;
+    } // end of function - CancelReadOperations
+
+    /// <summary>
+    /// Disposes of resources associated with this object
+    /// </summary>
+    public void Dispose()
+    {
+      Dispose(true); GC.SuppressFinalize(this);
+    } // end of function - Dispose
+    /// <summary>
+    /// Waits indefinitely for the data reader task to exit.
+    /// </summary>
+    public void Wait()
+    {
+      DataReader.Wait(CancelTokenSource.Token);
+    } // end of function - Wait
+
+    /// <summary>
+    /// Waits for the data reader to exit for up to the specified number of
+    /// milliseconds
+    /// </summary>
+    /// <param name="milliseconds">
+    /// Number of milliseconds to wait for it to exit
+    /// </param>
+    public void Wait(int milliseconds)
+    {
+      DataReader.Wait(milliseconds, CancelTokenSource.Token);
+    } // end of function - Wait
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+
+    /*----------------------- StartReader -----------------------------------*/
+    /// <summary>
+    /// Starts a string stream reader for the specified stream, using the
+    /// specified encoding for text reads.
+    /// </summary>
+    /// <param name="stream">
+    /// Stream to read from
+    /// </param>
+    /// <param name="handler">
+    /// Handler for when data is received
+    /// </param>
+    /// <param name="closeStream">
+    /// Close the base stream when disposed?
+    /// </param>
+    /// <returns>
+    /// StringStreamReader instance configured for the specified stream
+    /// </returns>
+    public static StringStreamReader StartReader(
+      Stream stream,
+      EventHandler<DataReceivedEventArgs> handler,
+      bool closeStream = true)
+    {
+      return new StringStreamReader(stream, handler, closeStream);
+    } // end of function - StartReader
+
+    /*======================= PROTECTED =====================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+
+    /*======================= PRIVATE =======================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
     /// <summary>
     /// Gets the default buffer size to use for buffers
     /// </summary>
@@ -76,60 +202,38 @@ namespace git_cache.IO
     /// </summary>
     private CancellationTokenSource CancelTokenSource { get; set; }
 
-
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
     /// <summary>
-    /// Starts a string stream reader for the specified stream, using the
-    /// specified encoding for text reads.
+    /// Explicit dispose method
     /// </summary>
-    /// <param name="stream">
-    /// Stream to read from
+    /// <param name="disposing">
+    /// Are we explicitly disposing, or called from the destructor
     /// </param>
-    /// <param name="handler">
-    /// Handler for when data is received
-    /// </param>
-    /// <param name="closeStream">
-    /// Close the base stream when disposed?
-    /// </param>
-    /// <returns>
-    /// StringStreamReader instance configured for the specified stream
-    /// </returns>
-    public static StringStreamReader StartReader(Stream stream, EventHandler<DataReceivedEventArgs> handler, bool closeStream = true)
+    private void Dispose(bool disposing)
     {
-      return new StringStreamReader(stream, handler, closeStream);
-    } // end of function - StartReader
-
-    /// <summary>
-    /// Private constructor
-    /// </summary>
-    /// <param name="stream">
-    /// Source stream to read from
-    /// </param>
-    /// <param name="closeStream">
-    /// Close the base stream on disposal?
-    /// </param>
-    private StringStreamReader(Stream stream, EventHandler<DataReceivedEventArgs> handler, bool closeStream)
-    {
-      if (null == (BaseStream = stream))
+      if (!CancelTokenSource.IsCancellationRequested)
       {
-        throw new ArgumentNullException("Invalid stream specified, must be non-null");
+        CancelTokenSource.Cancel();
+      } // end of if - cancel has not already be requested
+      try
+      {
+        DataReader.Wait(4000);
       }
-      BufferSize = 8096 * 4; // 32k
-      DataReceived = handler;
-      CancelTokenSource = new CancellationTokenSource();
-      CloseStream = closeStream;
-      // Make sure to call this last, since it uses other
-      // class members
-      DataReader = ReadDataAsync();
-    } // end of function - StringStreamReader
+      catch (Exception) {; }
 
-    /// <summary>
-    /// Destructor
-    /// </summary>
-    ~StringStreamReader()
-    {
-      Dispose(false);
-    } // end of function - ~StringStreamReader
-
+      if (disposing)
+      {
+        if (CloseStream && null != BaseStream)
+        {
+          BaseStream.Close();
+          BaseStream.Dispose();
+        } // end of if - we should close the base stream
+        CancelTokenSource.Dispose();
+      } // end of if - explicitly disposing
+      BaseStream = null;
+      CancelTokenSource = null;
+    } // end of function - Dispose
 
     /// <summary>
     /// Asynchronously reads data from the stream firing the events
@@ -186,75 +290,10 @@ namespace git_cache.IO
     {
       DataReceived?.Invoke(this, new DataReceivedEventArgs(buffer, byteCount));
     } // end of function - OnDataReceived
-
-    /// <summary>
-    /// Cancels the current read operations
-    /// </summary>
-    public void CancelReadOperations()
-    {
-      CancelTokenSource.Cancel();
-      return;
-    } // end of function - CancelReadOperations
-
-    /// <summary>
-    /// Disposes of resources associated with this object
-    /// </summary>
-    public void Dispose()
-    {
-      Dispose(true); GC.SuppressFinalize(this);
-    } // end of function - Dispose
-
-    /// <summary>
-    /// Explicit dispose method
-    /// </summary>
-    /// <param name="disposing">
-    /// Are we explicitly disposing, or called from the destructor
-    /// </param>
-    private void Dispose(bool disposing)
-    {
-      if (!CancelTokenSource.IsCancellationRequested)
-      {
-        CancelTokenSource.Cancel();
-      } // end of if - cancel has not already be requested
-      try
-      {
-        DataReader.Wait(4000);
-      }
-      catch (Exception) {; }
-
-      if (disposing)
-      {
-        if (CloseStream && null != BaseStream)
-        {
-          BaseStream.Close();
-          BaseStream.Dispose();
-        } // end of if - we should close the base stream
-        CancelTokenSource.Dispose();
-      } // end of if - explicitly disposing
-      BaseStream = null;
-      CancelTokenSource = null;
-    } // end of function - Dispose
-
-    /// <summary>
-    /// Waits indefinitely for the data reader task to exit.
-    /// </summary>
-    public void Wait()
-    {
-      DataReader.Wait(CancelTokenSource.Token);
-    } // end of function - Wait
-
-    /// <summary>
-    /// Waits for the data reader to exit for up to the specified number of
-    /// milliseconds
-    /// </summary>
-    /// <param name="milliseconds">
-    /// Number of milliseconds to wait for it to exit
-    /// </param>
-    public void Wait(int milliseconds)
-    {
-      DataReader.Wait(milliseconds, CancelTokenSource.Token);
-    } // end of function - Wait
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
 
   } // end of class - StringStreamReader
 
 } // end of namespace - git_cache.IO
+/* End of document - StreamReader.cs */
