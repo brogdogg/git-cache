@@ -3,12 +3,15 @@
  * Remarks: 
  */
 using git_cache.Git;
+using git_cache.Git.LFS;
+using git_cache.Results;
 using git_cache.Shell;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using Unity;
 
 namespace git_cache
 {
@@ -25,7 +28,12 @@ namespace git_cache
     /// <summary>
     /// Gets the configuration passed in during construction
     /// </summary>
-    public IConfiguration Configuration { get; } /* End of Property - Configuration */
+    public IConfiguration Configuration { get; } = null;
+    /************************ Container **************************************/
+    /// <summary>
+    /// Gets the unity container
+    /// </summary>
+    public IUnityContainer Container { get; } = null;
     /************************ Construction ***********************************/
     /*----------------------- Startup ---------------------------------------*/
     /// <summary>
@@ -37,6 +45,7 @@ namespace git_cache
     public Startup(IConfiguration configuration)
     {
       Configuration = configuration;
+      Container = new UnityContainer();
     } /* End of Function - Startup */
 
     /************************ Methods ****************************************/
@@ -52,9 +61,11 @@ namespace git_cache
       // Go ahead and add the configuration we were given
       services.AddSingleton(Configuration);
       // Add a bash shell to the services
-      services.AddScoped<IShell, BashShell>();
+      services.AddTransient<IShell, BashShell>();
       // And add the Git Context services
       ConfigureGitContextService(services);
+      //Container.RegisterType<IBatchRequestObject, BatchRequestObject>();
+      services.AddSingleton(Container);
     } /* End of Function - ConfigureServices */
 
     /*----------------------- ConfigureGitContextService --------------------*/
@@ -69,12 +80,12 @@ namespace git_cache
       if (null == services)
         throw new ArgumentNullException("Service collection cannot be null");
       // Add services for what is needed for the Git context
-      services.AddScoped<IRemoteRepositoryFactory, RemoteFactory>();
-      services.AddScoped<ILocalRepositoryFactory, LocalFactory>();
-      services.AddScoped<IGitExecuter, GitExecuter>();
-      services.AddScoped<IGitLFSExecuter, GitLFSExecutor>();
+      services.AddTransient<IRemoteRepositoryFactory, RemoteFactory>();
+      services.AddTransient<ILocalRepositoryFactory, LocalFactory>();
+      services.AddTransient<IGitExecuter, GitExecuter>();
+      services.AddTransient<IGitLFSExecuter, GitLFSExecutor>();
       // Finally add the git context service
-      services.AddScoped<IGitContext, GitContext>();
+      services.AddSingleton<IGitContext, GitContext>();
     } /* End of Function - ConfigureGitContextService */
 
     /*----------------------- Configure -------------------------------------*/

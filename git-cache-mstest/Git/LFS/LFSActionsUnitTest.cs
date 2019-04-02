@@ -48,7 +48,7 @@ namespace git_cache_mstest.Git.LFS
     /************************ Static *****************************************/
     /************************ Types ******************************************/
     public static class LFSActionBase<T>
-      where T : LFSActions.IAction
+      where T : IAction
     {
       public static void TestDefaultsGetsSets()
       {

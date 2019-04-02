@@ -3,6 +3,7 @@
  * Remarks: 
  */
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.Serialization;
 
 namespace git_cache.Git.LFS
@@ -13,7 +14,7 @@ namespace git_cache.Git.LFS
   /// Represents the de-serialized JSON string from the LFS request.
   /// </summary>
   [DataContract(Name = "BatchRequest")]
-  public class BatchRequestObject
+  public class BatchRequestObject : IBatchRequestObject
   {
     /*======================= PUBLIC ========================================*/
     /************************ Types ******************************************/
@@ -22,7 +23,7 @@ namespace git_cache.Git.LFS
     /// Represents the batch reference object
     /// </summary>
     [DataContract(Name = "ref")]
-    public class BatchRefObject
+    public class BatchRefObject: IBatchRefObject
     {
       /*===================== PUBLIC ========================================*/
       /********************** Events *****************************************/
@@ -39,32 +40,6 @@ namespace git_cache.Git.LFS
       /********************** Static *****************************************/
     } /* End of Class - BatchRefObject */
 
-    /************************ BatchItemObject ********************************/
-    /// <summary>
-    /// Represents the batch item object
-    /// </summary>
-    [DataContract(Name = "object")]
-    public class BatchItemObject
-    {
-      /*===================== PUBLIC ========================================*/
-      /********************** Events *****************************************/
-      /********************** Properties *************************************/
-      /// <summary>
-      /// Gets/Sets the string OID of the LFS object
-      /// </summary>
-      [DataMember(Name = "oid")]
-      public string OID { get; set; }
-      
-      /// <summary>
-      /// Gets/Sets byte size of the LFS object. Must be at least zero.
-      /// </summary>
-      [DataMember(Name = "size")]
-      public int Size { get; set; }
-      /********************** Construction ***********************************/
-      /********************** Methods ****************************************/
-      /********************** Fields *****************************************/
-      /********************** Static *****************************************/
-    } /* End of Class - BatchItemObject */
     /************************ Events *****************************************/
     /************************ Properties *************************************/
     /// <summary>
@@ -104,10 +79,22 @@ namespace git_cache.Git.LFS
     /// Gets/Sets an array of objects to download
     /// </summary>
     [DataMember(Name = "objects")]
-    public List<BatchItemObject> Objects
+    public List<Item> Objects
     {
       get; set;
     } // end of property - Objects
+
+    ICollection<string> IBatchRequestObject.Transfers { get { return Transfers; } }
+
+    IBatchRefObject IBatchRequestObject.Ref { get { return Ref; } }
+
+    ICollection<IItem> IBatchRequestObject.Objects
+    {
+      get
+      {
+        return Objects.Select(v => v as IItem).ToList();
+      }
+    }
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
     /************************ Fields *****************************************/

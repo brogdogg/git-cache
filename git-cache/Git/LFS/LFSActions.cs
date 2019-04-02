@@ -14,39 +14,17 @@ namespace git_cache.Git.LFS
   /// Represents the LFS actions
   /// </summary>
   [DataContract]
-  public class LFSActions
+  public class LFSActions : IActions
   {
     /*======================= PUBLIC ========================================*/
     /************************ Types ******************************************/
-    /// <summary>
-    /// Basic action type
-    /// </summary>
-    public interface IAction
-    {
-      /// <summary>
-      /// Gets the HREF for the action
-      /// </summary>
-      string HREF { get; }
-      /// <summary>
-      /// Gets header values for the action
-      /// </summary>
-      Dictionary<string, string> Header { get; }
-      /// <summary>
-      /// Gets the expires in seconds
-      /// </summary>
-      int ExpiresIn { get; }
-      /// <summary>
-      /// Gets the expires at value
-      /// </summary>
-      string ExpiresAt { get; }
-    } // end of interface - IAction
 
     /************************ DownloadAction *********************************/
     /// <summary>
     /// Represents a download action
     /// </summary>
     [DataContract]
-    public class DownloadAction : IAction
+    public class DownloadAction : IDownloadAction
     {
       /*===================== PUBLIC ========================================*/
       /********************** Events *****************************************/
@@ -87,7 +65,7 @@ namespace git_cache.Git.LFS
     /// Represents the _upload_ action
     /// </summary>
     [DataContract]
-    public class UploadAction : IAction
+    public class UploadAction : IUploadAction
     {
       /*===================== PUBLIC ========================================*/
       /********************** Events *****************************************/
@@ -123,7 +101,7 @@ namespace git_cache.Git.LFS
     /// Represents the _verify_ action
     /// </summary>
     [DataContract]
-    public class VerifyAction : IAction
+    public class VerifyAction : IVerifyAction
     {
       /*===================== PUBLIC ========================================*/
       /********************** Events *****************************************/
@@ -177,6 +155,21 @@ namespace git_cache.Git.LFS
     /// </summary>
     [DataMember(Name = "verify", EmitDefaultValue = false)]
     public VerifyAction Verify { get; set; } /* End of Property - Verify */
+
+    /// <summary>
+    /// Gets the underlying download action
+    /// </summary>
+    IDownloadAction IActions.Download { get { return Download; } }
+
+    /// <summary>
+    /// Gets the underlying upload action
+    /// </summary>
+    IUploadAction IActions.Upload { get { return Upload; } }
+
+    /// <summary>
+    /// Gets the underlying verify action
+    /// </summary>
+    IVerifyAction IActions.Verify { get { return Verify; } }
 
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/

@@ -11,7 +11,7 @@ namespace git_cache.Git.LFS
   /// Represents an error for LFS
   /// </summary>
   [DataContract(Name = "error")]
-  public class LFSError
+  public class LFSError : IError
   {
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/

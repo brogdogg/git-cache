@@ -4,6 +4,7 @@
  */
 using git_cache.Controllers;
 using git_cache.Git;
+using git_cache.Shell;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -50,7 +51,7 @@ namespace git_cache_mstest.Git
     [ExpectedException(typeof(ArgumentNullException))]
     public void ThrowsWhenInvalidConfig()
     {
-      var ctrl = new GitController(null, m_gitContext);
+      var ctrl = new GitController(null, m_gitContext, m_shell);
     } /* End of Function - ThrowsWhenInvalidConfig */
 
     /*----------------------- ThrowsWhenInvalidContext ----------------------*/
@@ -61,7 +62,7 @@ namespace git_cache_mstest.Git
     [ExpectedException(typeof(ArgumentNullException))]
     public void ThrowsWhenInvalidContext()
     {
-      var ctrl = new GitController(m_config, null);
+      var ctrl = new GitController(m_config, null, m_shell);
     } /* End of Function - ThrowsWhenInvalidContext */
 
     /************************ Fields *****************************************/
@@ -89,6 +90,10 @@ namespace git_cache_mstest.Git
     /// Git executor
     /// </summary>
     IGitExecuter m_gitExec;
+    /// <summary>
+    /// Gets the shell object
+    /// </summary>
+    IShell m_shell;
     /************************ Static *****************************************/
   } /* End of Class - GitControllerUnitTest */
 }

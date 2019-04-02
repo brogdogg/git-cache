@@ -1,22 +1,19 @@
 ﻿/******************************************************************************
- * File...: GitServiceAdvertisementResult.cs
+ * File...: ServiceAdvertisementResult.cs
  * Remarks: 
  */
-using git_cache.Git;
 using git_cache.Shell;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.IO;
 using System.Text;
-using System.Threading.Tasks;
 
-namespace git_cache.Results
+namespace git_cache.Git.Results
 {
-  /************************** GitServiceAdvertisementResult ******************/
+  /************************** ServiceAdvertisementResult *********************/
   /// <summary>
   /// A HTTP response representing a git service advertisement result
   /// </summary>
-  public class GitServiceAdvertisementResult : ActionResult
+  public class ServiceAdvertisementResult : ActionResult
   {
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
@@ -31,6 +28,12 @@ namespace git_cache.Results
     /// Gets the repository associated with the result
     /// </summary>
     public ILocalRepository Repository { get; } /* End of Property - Repository */
+
+    /************************ Shell ******************************************/
+    /// <summary>
+    /// 
+    /// </summary>
+    public IShell Shell { get; } /* End of Property - Shell */
     /************************ Construction ***********************************/
 
     /*----------------------- GitServiceAdvertisementResult -----------------*/
@@ -43,11 +46,16 @@ namespace git_cache.Results
     /// <param name="repo">
     /// The repository the result is for
     /// </param>
-    public GitServiceAdvertisementResult(string service, ILocalRepository repo)
+    public ServiceAdvertisementResult(
+      string service,
+      ILocalRepository repo,
+      IShell shell)
     {
       Service = service;
       if (null == (Repository = repo))
         throw new ArgumentNullException("Invalid repository given, must not be null");
+      if (null == (Shell = shell))
+        throw new ArgumentNullException("Invalid shell object givin, must not be null");
       return;
     } /* End of Function - GitServiceAdvertisementResult */
 
@@ -67,9 +75,7 @@ namespace git_cache.Results
       response.Headers.Add("Cache-Control", "no-cache");
       var bytes = Encoding.UTF8.GetBytes($"001e# service={Service}\n0000");
       response.Body.Write(bytes, 0, bytes.Length);
-#warning REFACTOR TO GET RID OF COUPLING
-      var shell = new BashShell();
-      shell.Execute($"{Service} --stateless-rpc --advertise-refs \"{Repository.Path}\"",
+      Shell.Execute($"{Service} --stateless-rpc --advertise-refs \"{Repository.Path}\"",
         (code) => code != 0, response.Body);
       return;
     } /* End of Function - ExecuteResult */
@@ -87,16 +93,11 @@ namespace git_cache.Results
     /*======================= PRIVATE =======================================*/
     /************************ Events *****************************************/
     /************************ Properties *************************************/
-    /************************ GetBodyContentsAsync ***************************/
-    /// <summary>
-    /// Gets the functor for getting the body contents asynchronously
-    /// </summary>
-    private Func<Stream, Task<int>> GetBodyContentsAsync { get; } /* End of Property - GetBodyContentsAsync */
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
 
-  } /* End of Class - GitServiceAdvertisementResult */
+  } /* End of Class - ServiceAdvertisementResult */
 }
-/* End of document - GitServiceAdvertisementResult.cs */
+/* End of document - ServiceAdvertisementResult.cs */

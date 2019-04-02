@@ -34,7 +34,7 @@ namespace git_cache_mstest.Git.LFS
       Assert.IsNull(obj.Ref);
       Assert.IsNull(obj.Transfers);
       Assert.IsNull(obj.Operation);
-      Assert.IsNotNull((obj.Objects = new List<BatchRequestObject.BatchItemObject>()));
+      Assert.IsNotNull((obj.Objects = new List<Item>()));
       Assert.AreEqual("op", (obj.Operation = "op"));
       Assert.IsNotNull((obj.Transfers = new List<string>()));
       Assert.IsNotNull((obj.Ref = new BatchRequestObject.BatchRefObject()));
@@ -69,34 +69,5 @@ namespace git_cache_mstest.Git.LFS
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
   } /* End of Class - BatchRefObjUnitTest */
-
-  /************************** BatchItemObjectUnitTest ************************/
-  /// <summary>
-  /// Verifies the behavior of <see cref="BatchRequestObject.BatchItemObject"/>
-  /// </summary>
-  [TestClass]
-  public class BatchItemObjectUnitTest
-  {
-    /*======================= PUBLIC ========================================*/
-    /************************ Events *****************************************/
-    /************************ Properties *************************************/
-    /************************ Construction ***********************************/
-    /************************ Methods ****************************************/
-    /*----------------------- DefaultsGetsSets ------------------------------*/
-    /// <summary>
-    /// Verifies the constructor defaults and gets/sets
-    /// </summary>
-    [TestMethod]
-    public void DefaultsGetsSets()
-    {
-      var obj = new BatchRequestObject.BatchItemObject();
-      Assert.IsNull(obj.OID);
-      Assert.AreEqual(0, obj.Size);
-      Assert.AreEqual("test", (obj.OID = "test"));
-      Assert.AreEqual(1024, (obj.Size = 1024));
-    } /* End of Function - DefaultsGetsSets */
-    /************************ Fields *****************************************/
-    /************************ Static *****************************************/
-  } /* End of Class - BatchItemObjectUnitTest */
 }
 /* End of document - BatchRequestObjectUnitTest.cs */

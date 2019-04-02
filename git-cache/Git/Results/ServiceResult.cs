@@ -2,20 +2,20 @@
  * File...: GitServiceResultResult.cs
  * Remarks: 
  */
-using git_cache.Git;
 using git_cache.Shell;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.IO;
 using System.IO.Compression;
 using System.Text;
 
-namespace git_cache.Results
+namespace git_cache.Git.Results
 {
-  /************************** GitServiceResultResult *************************/
+  /************************** ServiceResult **********************************/
   /// <summary>
-  /// 
+  /// Concrete implementation of the <see cref="IServiceResult"/>
   /// </summary>
-  public class GitServiceResultResult : ActionResult
+  public class ServiceResult : ActionResult, IServiceResult
   {
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
@@ -49,11 +49,16 @@ namespace git_cache.Results
     /// <param name="useGzip">
     /// True if the result should be compressed, false otherwise
     /// </param>
-    public GitServiceResultResult(string service, ILocalRepository repo, bool useGzip = false)
+    public ServiceResult(string service, ILocalRepository repo, IShell shell, bool useGzip = false)
     {
       Service = service;
       UseGZip = useGzip;
-      Repository = repo;
+      if (null == (Repository = repo))
+        throw new ArgumentNullException(
+          "Local repository is invalid, value must not be null");
+      if (null == (Shell = shell))
+        throw new ArgumentNullException(
+          "Shell object is invalid, value must not be null");
     } /* End of Function - GitServiceResultResult */
     /************************ Methods ****************************************/
     /*----------------------- ExecuteResult ---------------------------------*/
@@ -74,10 +79,8 @@ namespace git_cache.Results
       Stream gzipStream = new GZipStream(response.Body, CompressionLevel.Optimal, true);
       if (UseGZip)
         stream = new GZipStream(request.Body, CompressionMode.Decompress, true);
-#warning REFACTOR TO GET RID OF COUPLING
-      var shell = new BashShell();
 #warning Refactor input writer lambda
-      shell.Execute($"{Service} --stateless-rpc \"{Repository.Path}\"",
+      Shell.Execute($"{Service} --stateless-rpc \"{Repository.Path}\"",
         (code) => code != 0, response.Body, (writer) =>
       {
         FileStream fs = new FileStream("/tmp/test", FileMode.Create, FileAccess.Write);
@@ -109,6 +112,11 @@ namespace git_cache.Results
     /*======================= PROTECTED =====================================*/
     /************************ Events *****************************************/
     /************************ Properties *************************************/
+    /************************ Shell ******************************************/
+    /// <summary>
+    /// Gets the shell object
+    /// </summary>
+    protected IShell Shell { get; } /* End of Property - Shell */
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
     /************************ Fields *****************************************/
@@ -122,6 +130,6 @@ namespace git_cache.Results
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
 
-  } /* End of Class - GitServiceResultResult */
+  } /* End of Class - ServiceResult */
 }
-/* End of document - GitServiceResultResult.cs */
+/* End of document - ServiceResult.cs */

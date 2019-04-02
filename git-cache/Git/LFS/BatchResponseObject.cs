@@ -21,7 +21,7 @@ namespace git_cache.Git.LFS
     /// <summary>
     /// Represents a LFS object as represented in a response
     /// </summary>
-    public class ResponseLFSItem : LFSItem
+    public class ResponseLFSItem : Item, IResponseLFSItem
     {
       /*===================== PUBLIC ========================================*/
       /********************** Events *****************************************/
@@ -43,6 +43,21 @@ namespace git_cache.Git.LFS
       /// </summary>
       [DataMember(Name ="error", EmitDefaultValue = false)]
       public LFSError Error { get; set; } = null;
+
+      /// <summary>
+      /// Gets the underlying authenticated flag
+      /// </summary>
+      bool IResponseLFSItem.Authenticated { get { return Authenticated; } }
+
+      /// <summary>
+      /// Gets the underlying actions
+      /// </summary>
+      IActions IResponseLFSItem.Actions { get { return Actions; } }
+
+      /// <summary>
+      /// Gets the underlying error
+      /// </summary>
+      IError IResponseLFSItem.Error { get { return Error; } }
 
       /********************** Construction ***********************************/
       /********************** Methods ****************************************/

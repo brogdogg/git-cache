@@ -1,17 +1,17 @@
 ﻿/******************************************************************************
- * File...: 
+ * File...: Item.cs
  * Remarks: 
  */
 using System.Runtime.Serialization;
 
 namespace git_cache.Git.LFS
 {
-  /************************** LFSItem ****************************************/
+  /************************** Item *******************************************/
   /// <summary>
   /// Represents a LFS request object and the base LFS response object
   /// </summary>
-  [DataContract]
-  public class LFSItem
+  [DataContract(Name = "object")]
+  public class Item : IItem
   {
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
@@ -36,4 +36,4 @@ namespace git_cache.Git.LFS
 
 } // end of namespace - git_cache.Git.LFS
 
-/* End of document - LFSItem.cs */
+/* End of document - Item.cs */

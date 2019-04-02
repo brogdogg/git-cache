@@ -21,13 +21,13 @@ namespace git_cache_mstest.Git.LFS
     /************************ Methods ****************************************/
     /*----------------------- DefaultsGetsSets ------------------------------*/
     /// <summary>
-    /// Verifies the <see cref="LFSItem"/> constructs with correct defaults
+    /// Verifies the <see cref="Item"/> constructs with correct defaults
     /// and the properties are capable of getting/setting
     /// </summary>
     [TestMethod]
     public void DefaultsGetsSets()
     {
-      var item = new LFSItem();
+      var item = new Item();
       Assert.AreEqual(null, item.OID);
       Assert.AreEqual(0, item.Size);
       item.OID = "test";
