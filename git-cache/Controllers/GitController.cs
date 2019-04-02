@@ -1,143 +1,76 @@
-﻿using System;
-using Microsoft.AspNetCore.Mvc;
+﻿/******************************************************************************
+ * File...: GitController.cs
+ * Remarks: 
+ */
 using git_cache.Git;
-using Microsoft.Extensions.Configuration;
-using git_cache.Configuration;
-using System.Net.Http;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using git_cache.Results;
-using System.Text;
 using git_cache.Git.LFS;
+using git_cache.Git.Results;
+using git_cache.Results;
+using git_cache.Shell;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using System;
+using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Threading.Tasks;
 
 namespace git_cache.Controllers
 {
 
+  /************************** GitController **********************************/
   /// <summary>
-  /// 
+  /// Controller for git operations
   /// </summary>
   [Produces("application/json")]
   [Route("api/Git")]
   public class GitController : Controller
   {
-    // Holding spot for the injected configuration
+    /*======================= PUBLIC ========================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Configuration **********************************/
+    /// <summary>
+    /// Holding spot for the injected configuration
+    /// </summary>
     IConfiguration Configuration { get; } = null;
-
+    /// <summary>
+    /// 
+    /// </summary>
+    IGitContext GitContext { get; } = null;
+    /// <summary>
+    /// Gets the shell object
+    /// </summary>
+    IShell Shell { get; } = null;
+    /************************ Construction ***********************************/
+    /*----------------------- GitController ---------------------------------*/
     /// <summary>
     /// Constructor for dependency injection
     /// </summary>
     /// <param name="config">
     /// application configuration object
     /// </param>
-    public GitController(IConfiguration config)
+    /// <param name="localFactory">
+    /// Factory for building <see cref="ILocalRepository"/> objects
+    /// </param>
+    /// <param name="remoteFactory">
+    /// Factory for building <see cref="IRemoteRepository"/> objects
+    /// </param>
+    public GitController(IConfiguration config,
+      IGitContext gitContext,
+      IShell shell)
       : base()
     {
       if (null == (Configuration = config))
         throw new ArgumentNullException("A valid configuration must be provided");
+      if (null == (GitContext = gitContext))
+        throw new ArgumentNullException("A valid git context must be provided");
+      if (null == (Shell = shell))
+        throw new ArgumentNullException("A valid shell object must be provided");
     } // end of function - GitController
 
-    /// <summary>
-    /// Parses the string for a basic authorization entry
-    /// </summary>
-    /// <param name="auth"></param>
-    /// <returns></returns>
-    private AuthInfo ParseAuth(string auth)
-    {
-      var pair = auth.Split(" ");
-      return new AuthInfo
-        {
-          Scheme = pair[0],
-          RawAuth = auth,
-          Decoded = Encoding.UTF8.GetString(Convert.FromBase64String(pair[1])),
-          Encoded = pair[1]
-        };
-    } // end of function - ParseAuth
-
-    /// <summary>
-    /// Authenticates asynchronously
-    /// </summary>
-    /// <param name="repo">
-    /// The remote repository to authenticate against
-    /// </param>
-    /// <returns>
-    /// Task for getting the HTTP Response from the authentication request
-    /// </returns>
-    private async Task<HttpResponseMessage> AuthenticateAsync(RemoteRepo repo)
-    {
-      // Create a HTTP client to work with
-      HttpClient client = new HttpClient();
-      // Clear out the headers and setup our own
-      client.DefaultRequestHeaders.Accept.Clear();
-      // Attach the authentication if we have it
-      if (null != repo.Auth)
-        client.DefaultRequestHeaders.Authorization
-          = new AuthenticationHeaderValue(repo.Auth.Scheme,
-                                          repo.Auth.Encoded);
-      // Pretend we are a git client
-      client.DefaultRequestHeaders.UserAgent.Add(
-        new System.Net.Http.Headers.ProductInfoHeaderValue("git", "1.0"));
-      // Finally go ahead and authenticate against the info/refs url
-      string url = $"{repo.Url}/info/refs?service=git-upload-pack";
-      return await client.GetAsync(url);
-    } // end of function - AuthenticateAsync
-
-    /// <summary>
-    /// Builds a <see cref="RemoteRepo"/> object from the specified values.
-    /// </summary>
-    /// <param name="destinationServer">
-    /// Sever address, without the protocol; e.g. github.com
-    /// </param>
-    /// <param name="repoOwner">
-    /// Owner of the repository
-    /// </param>
-    /// <param name="repo">
-    /// Name of the repository
-    /// </param>
-    /// <param name="authorization">
-    /// Optional authentication record to associate with the repository
-    /// </param>
-    /// <returns>
-    /// Remote repository object associated with the given parameters
-    /// </returns>
-    private RemoteRepo BuildRemoteRepo(
-      string destinationServer,
-      string repoOwner,
-      string repo,
-      string authorization)
-    {
-      AuthInfo authInfo = null;
-      if (null != authorization)
-        authInfo = ParseAuth(authorization);
-      return new RemoteRepo(destinationServer,
-                            repoOwner,
-                            repo,
-                            authInfo,
-                            Configuration.DisableHTTPS());
-    } // end of function - BuildRemoteRepo
-
-    /// <summary>
-    /// Checks the authorization against the remote repository
-    /// </summary>
-    /// <param name="repo">
-    /// Remote repository to work with
-    /// </param>
-    /// <returns>
-    /// The forwarded result task
-    /// </returns>
-    private async Task<ActionResult> CheckAuthorizationAsync(RemoteRepo repo)
-    {
-      ActionResult retval = null;
-      // Authenticate the repository
-      var resp = await AuthenticateAsync(repo);
-      // If we were not successful, then we will forward the result back to the
-      // user
-      if (System.Net.HttpStatusCode.OK != resp.StatusCode)
-        retval = new ForwardedResult(resp);
-      return retval;
-    } // end of function - CheckAuthorizationAsync
-
+    /************************ Methods ****************************************/
     // GET: api/Git/{server}/{repoOwner}/{repo}/info/refs?service={service}
     /// <summary>
     /// HTTP GET handler for fetch/clones from git
@@ -158,23 +91,27 @@ namespace git_cache.Controllers
       [FromHeader]string authorization)
     {
       ActionResult retval = null;
-      var repo = BuildRemoteRepo(destinationServer, repositoryOwner, repository, authorization);
+      var repo = GitContext.RemoteFactory.Build(destinationServer,
+        repositoryOwner,
+        repository,
+        authorization);
+
       // Verify the authorization is OK, if not then return the error response
       // from the actual git server
       if (null != (retval = await CheckAuthorizationAsync(repo)))
         return retval;
       // Create a local repository based on the remote repo
-      LocalRepo local = new LocalRepo(repo, new LocalConfiguration(Configuration));
+      var local = GitContext.LocalFactory.Build(repo, Configuration);
       try
       {
         // Updates our local cache, if it has never been downloaded then it
         // will be cloned, otherwise just a fetch is performed to update
         // the local copy
-        await GitExecution.UpdateLocalAsync(local);
+        await GitContext.UpdateLocalAsync(local);
         // Then create a custom git service advertisement result to send
         // back to the client, basically forwarding everything we just
         // updated to the client now
-        retval = new GitServiceAdvertisementResult(service, local);
+        retval = new ServiceAdvertisementResult(service, local, Shell);
       } // end of try - to update first
       catch (Exception exc)
       {
@@ -204,13 +141,19 @@ namespace git_cache.Controllers
       [FromHeader(Name = "content-encoding")]string contentEncoding)
     {
       ActionResult retval = new OkResult();
-      var repo = BuildRemoteRepo(destinationServer, repositoryOwner, repository, authorization);
+      var repo = GitContext.RemoteFactory.Build(destinationServer,
+        repositoryOwner,
+        repository,
+        authorization);
       if (null != (retval = await CheckAuthorizationAsync(repo)))
         return retval;
-      LocalRepo local = new LocalRepo(repo, new LocalConfiguration(Configuration));
+      var local = GitContext.LocalFactory.Build(repo, Configuration);
       try
       {
-        retval = new GitServiceResultResult(service, local, contentEncoding == "gzip");
+        retval = new ServiceResult(service,
+                                   local,
+                                   Shell,
+                                   contentEncoding == "gzip");
       }
       catch (Exception exc)
       {
@@ -274,7 +217,7 @@ namespace git_cache.Controllers
     /// Task generating a <see cref="BatchResponseObject"/>, with information to
     /// send to the client
     /// </returns>
-    public async Task<BatchResponseObject> CreateBatchLFSResponse(LocalRepo repo, BatchRequestObject reqObj)
+    public async Task<BatchResponseObject> CreateBatchLFSResponse(ILocalRepository repo, BatchRequestObject reqObj)
     {
       // Create our main response object
       BatchResponseObject retval = new BatchResponseObject();
@@ -333,7 +276,7 @@ namespace git_cache.Controllers
     /// LFS object file
     /// </returns>
     [HttpGet("{destinationServer}/{repositoryOwner}/{repository}/lfs/download/{oid}")]
-    public async Task<ActionResult> LFSDownload(
+    public ActionResult LFSDownload(
       string destinationServer,
       string repositoryOwner,
       string repository,
@@ -397,6 +340,14 @@ namespace git_cache.Controllers
         });
     } // end of function - DeleteCachedRepository
 
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+
+    /*======================= PROTECTED =====================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
     /// <summary>
     /// Gets the local repository associated with the given parameters
     /// </summary>
@@ -405,16 +356,77 @@ namespace git_cache.Controllers
     /// <param name="name"></param>
     /// <param name="auth"></param>
     /// <returns></returns>
-    protected LocalRepo GetLocalRepo(string server, string owner, string name, string auth = null)
+    protected ILocalRepository GetLocalRepo(string server, string owner, string name, string auth = null)
     {
-      return new LocalRepo(
-        BuildRemoteRepo(server, owner, name, auth),
-        new LocalConfiguration(this.Configuration)
-        );
+      return GitContext.LocalFactory.Build(
+        GitContext.RemoteFactory.Build(server, owner, name, auth),
+        Configuration);
     } // end of function - GetLocalRepo
+
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
+
+    /*======================= PRIVATE =======================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+
+    /// <summary>
+    /// Authenticates asynchronously
+    /// </summary>
+    /// <param name="repo">
+    /// The remote repository to authenticate against
+    /// </param>
+    /// <returns>
+    /// Task for getting the HTTP Response from the authentication request
+    /// </returns>
+    private async Task<HttpResponseMessage> AuthenticateAsync(IRemoteRepository repo)
+    {
+      // Create a HTTP client to work with
+      HttpClient client = new HttpClient();
+      // Clear out the headers and setup our own
+      client.DefaultRequestHeaders.Accept.Clear();
+      // Attach the authentication if we have it
+      if (null != repo.Auth)
+        client.DefaultRequestHeaders.Authorization
+          = new AuthenticationHeaderValue(repo.Auth.Scheme,
+                                          repo.Auth.Encoded);
+      // Pretend we are a git client
+      client.DefaultRequestHeaders.UserAgent.Add(
+        new ProductInfoHeaderValue("git", "1.0"));
+      // Finally go ahead and authenticate against the info/refs url
+      string url = $"{repo.Url}/info/refs?service=git-upload-pack";
+      return await client.GetAsync(url);
+    } // end of function - AuthenticateAsync
+
+    /// <summary>
+    /// Checks the authorization against the remote repository
+    /// </summary>
+    /// <param name="repo">
+    /// Remote repository to work with
+    /// </param>
+    /// <returns>
+    /// The forwarded result task
+    /// </returns>
+    private async Task<ActionResult> CheckAuthorizationAsync(IRemoteRepository repo)
+    {
+      ActionResult retval = null;
+      // Authenticate the repository
+      var resp = await AuthenticateAsync(repo);
+      // If we were not successful, then we will forward the result back to the
+      // user
+      if (System.Net.HttpStatusCode.OK != resp.StatusCode)
+        retval = new ForwardedResult(resp);
+      return retval;
+    } // end of function - CheckAuthorizationAsync
+
+    /************************ Fields *****************************************/
+    /************************ Static *****************************************/
 
   } // end of class - GitController
 
 } // end of namespace - git_cache.Controllers
 
 
+/* End of document - GitController.cs */

@@ -1,37 +1,39 @@
 ﻿/******************************************************************************
- * File...: LFSError.cs
+ * File...: Item.cs
  * Remarks: 
  */
 using System.Runtime.Serialization;
 
 namespace git_cache.Git.LFS
 {
-  /************************** LFSError ***************************************/
+  /************************** Item *******************************************/
   /// <summary>
-  /// Represents an error for LFS
+  /// Represents a LFS request object and the base LFS response object
   /// </summary>
-  [DataContract(Name = "error")]
-  public class LFSError : IError
+  [DataContract(Name = "object")]
+  public class Item : IItem
   {
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
     /************************ Properties *************************************/
-    /************************ Code *******************************************/
     /// <summary>
-    /// Gets/Sets the error code
+    /// Gets/Sets the OID of the LFS object
     /// </summary>
-    [DataMember(Name = "code")]
-    public int Code { get; set; } = 0;
-    /************************ Message ****************************************/
+    [DataMember(Name = "oid")]
+    public string OID { get; set; } = null;
+
     /// <summary>
-    /// Gets/Sets the error message
+    /// Gets/Sets byte size of the LFS object. Must be at least zero.
     /// </summary>
-    [DataMember(Name = "message")]
-    public string Message { get; set; } = "";
+    [DataMember(Name = "size")]
+    public int Size { get; set; } = 0;
+
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
-  } /* End of Class - LFSError */
-}
-/* End of document - LFSError.cs */
+  } // end of class - LFSItem
+
+} // end of namespace - git_cache.Git.LFS
+
+/* End of document - Item.cs */

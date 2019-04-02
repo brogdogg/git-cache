@@ -1,4 +1,5 @@
-FROM microsoft/aspnetcore:2.0 AS base
+FROM mcr.microsoft.com/dotnet/core/aspnet:2.2 AS base
+#FROM microsoft/aspnetcore:2.2 AS base
 WORKDIR /app
 EXPOSE 80
 RUN apt-get update && apt-get install -y git

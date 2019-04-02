@@ -1,19 +1,21 @@
 ﻿/******************************************************************************
- * File...: Program.cs
+ * File...: GitContextUnitTest.cs
  * Remarks: 
  */
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace git_cache
+namespace git_cache_mstest.Shell
 {
-  /************************** Program ****************************************/
+  /************************** BashShellUnitTest ******************************/
   /// <summary>
-  /// Main class for the program
+  /// Verifies the behavior of the BashShell instance
   /// </summary>
-  public class Program
+  [TestClass]
+  public class BashShellUnitTest
   {
-
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
     /************************ Properties *************************************/
@@ -21,27 +23,6 @@ namespace git_cache
     /************************ Methods ****************************************/
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
-    /*----------------------- Main ------------------------------------------*/
-    /// <summary>
-    /// Entry point for the program
-    /// </summary>
-    /// <param name="args">
-    /// Arguments passed to the program
-    /// </param>
-    public static void Main(string[] args)
-    {
-      BuildWebHost(args).Run();
-    } /* End of Function - Main */
-
-    /*----------------------- BuildWebHost ----------------------------------*/
-    /// <summary>
-    /// The function responsible for building the web host
-    /// </summary>
-    /// <param name="args"></param>
-    public static IWebHost BuildWebHost(string[] args) =>
-        WebHost.CreateDefaultBuilder(args)
-            .UseStartup<Startup>()
-            .Build();
 
     /*======================= PROTECTED =====================================*/
     /************************ Events *****************************************/
@@ -59,6 +40,6 @@ namespace git_cache
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
 
-  } /* End of Class - Program */
+  } /* End of Class - BashShellUnitTest */
 }
-/* End of document - Program.cs */
+/* End of document - BashShellUnitTest.cs */
