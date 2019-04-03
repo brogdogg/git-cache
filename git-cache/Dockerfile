@@ -1,5 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/aspnet:2.2 AS base
-#FROM microsoft/aspnetcore:2.2 AS base
+FROM microsoft/dotnet:2.2-aspnetcore-runtime AS base
 WORKDIR /app
 EXPOSE 80
 RUN apt-get update && apt-get install -y git
@@ -12,11 +11,13 @@ RUN build_deps="curl" && \
     DEBIAN_FRONTEND=noninteractive apt-get purge -y --auto-remove ${build_deps} && \
     rm -r /var/lib/apt/lists/*
 
-FROM microsoft/aspnetcore-build:2.0 AS build
+FROM microsoft/dotnet:2.2-sdk AS build
 WORKDIR /src
 COPY git-cache.sln ./
 COPY git-cache/git-cache.csproj git-cache/
-RUN dotnet restore -nowarn:msb3202,nu1503
+COPY git-cache-mstest/git-cache-mstest.csproj git-cache-mstest/
+COPY docker-compose.dcproj ./
+RUN dotnet restore git-cache.sln -nowarn:msb3202,nu1503
 COPY . .
 WORKDIR /src/git-cache
 RUN dotnet build -c Release -o /app
