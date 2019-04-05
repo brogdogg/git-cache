@@ -1,7 +1,9 @@
-# Bug Report
-
-## About
-
+---
+title: 'Bug Report'
+name: 'Bug Report'
+about: 'Describes a bug in the code'
+labels: bug
+---
 **Describe the bug**
 
 <!-- A clear and concise description of what the bug is. -->
