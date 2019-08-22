@@ -3,8 +3,9 @@
  * Remarks: 
  */
 using git_cache.Controllers;
-using git_cache.Git;
-using git_cache.Shell;
+using git_cache.Services.Configuration;
+using git_cache.Services.Git;
+using git_cache.Services.Shell;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -35,8 +36,9 @@ namespace git_cache_mstest.Git
       m_localFactory = Substitute.For<ILocalRepositoryFactory>();
       m_gitExec = Substitute.For<IGitExecuter>();
       m_lfsExec = Substitute.For<IGitLFSExecuter>();
-      m_config = Substitute.For<IConfiguration>();
+      m_config = Substitute.For<IGitCacheConfiguration>();
       m_gitContext = new GitContext(
+        m_config,
         m_localFactory,
         m_remoteFactory,
         m_gitExec,
@@ -51,7 +53,7 @@ namespace git_cache_mstest.Git
     [ExpectedException(typeof(ArgumentNullException))]
     public void ThrowsWhenInvalidConfig()
     {
-      var ctrl = new GitController(null, m_gitContext, m_shell);
+      var ctrl = new GitController(m_gitContext, m_shell);
     } /* End of Function - ThrowsWhenInvalidConfig */
 
     /*----------------------- ThrowsWhenInvalidContext ----------------------*/
@@ -62,7 +64,7 @@ namespace git_cache_mstest.Git
     [ExpectedException(typeof(ArgumentNullException))]
     public void ThrowsWhenInvalidContext()
     {
-      var ctrl = new GitController(m_config, null, m_shell);
+      var ctrl = new GitController(null, m_shell);
     } /* End of Function - ThrowsWhenInvalidContext */
 
     /************************ Fields *****************************************/
@@ -77,7 +79,7 @@ namespace git_cache_mstest.Git
     /// <summary>
     /// Configuration item
     /// </summary>
-    IConfiguration m_config;
+    IGitCacheConfiguration m_config;
     /// <summary>
     /// GitContext
     /// </summary>

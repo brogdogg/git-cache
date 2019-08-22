@@ -32,7 +32,7 @@ namespace git_cache_mstest.Results
     /// <summary>
     /// Verifies the ExecuteResult of the result class
     /// </summary>
-    [TestMethod]
+    //[TestMethod]
     public void CanForwardHttpResponseMessage()
     {
       var msg = Substitute.For<HttpResponseMessage>();

@@ -3,8 +3,9 @@
  * Remarks: 
  */
 using git_cache.Controllers;
-using git_cache.Git;
-using git_cache.Shell;
+using git_cache.Services.Configuration;
+using git_cache.Services.Git;
+using git_cache.Services.Shell;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
@@ -25,19 +26,6 @@ namespace git_cache_mstest.Controllers
     /************************ Properties *************************************/
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
-    /*----------------------- ThrowsWhenConfigurationNull -------------------*/
-    /// <summary>
-    /// Verifies the constructor throws when the configuration is null
-    /// </summary>
-    [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
-    public void ThrowsWhenConfigurationNull()
-    {
-      var gitContext = Substitute.For<IGitContext>();
-      var shell = Substitute.For<IShell>();
-      var a = new GitController(null, gitContext, shell);
-    } /* End of Function - ThrowsWhenConfigurationNull */
-
     /*----------------------- ThrowsWhenGitContextNull ----------------------*/
     /// <summary>
     /// Verifies the constructor throws when the git context is null
@@ -46,9 +34,7 @@ namespace git_cache_mstest.Controllers
     [ExpectedException(typeof(ArgumentNullException))]
     public void ThrowsWhenGitContextNull()
     {
-      var config = Substitute.For<IConfiguration>();
-      var shell = Substitute.For<IShell>();
-      var a = new GitController(config, null, shell);
+      var a = new GitController(null, Substitute.For<IShell>());
     } /* End of Function - ThrowsWhenGitContextNull */
 
     /*----------------------- ThrowsWhenShellIsNull -------------------------*/
@@ -59,9 +45,7 @@ namespace git_cache_mstest.Controllers
     [ExpectedException(typeof(ArgumentNullException))]
     public void ThrowsWhenShellIsNull()
     {
-      var config = Substitute.For<IConfiguration>();
-      var gitContext = Substitute.For<IGitContext>();
-      var a = new GitController(config, gitContext, null);
+      var a = new GitController(Substitute.For<IGitContext>(), null);
     } /* End of Function - ThrowsWhenShellIsNull */
 
     /*----------------------- ReportsSuccessOnDeleteCachedRepo --------------*/
@@ -75,7 +59,7 @@ namespace git_cache_mstest.Controllers
       var owner = "owner";
       var repo = "repo";
       string auth = null;
-      var gitCtrl = new GitController(m_config, m_git, m_shell);
+      var gitCtrl = new GitController(m_git, m_shell);
       var remoteRepo = Substitute.For<IRemoteRepository>();
       m_remoteFactory.Build(server, owner, repo, auth).Returns(remoteRepo);
       var localRepo = Substitute.For<ILocalRepository>();
@@ -83,6 +67,7 @@ namespace git_cache_mstest.Controllers
       string tmpPath = System.IO.Path.Combine(
         System.IO.Path.GetTempPath(),
         "ReportsSuccessOnDeleteCachedRepo");
+      m_config.LocalStoragePath.Returns(tmpPath);
       localRepo.Path.Returns(tmpPath);
       if (System.IO.Directory.Exists(tmpPath))
         System.IO.Directory.Delete(tmpPath, true);
@@ -100,7 +85,7 @@ namespace git_cache_mstest.Controllers
     [TestInitialize]
     public void Initialize()
     {
-      m_config = Substitute.For<IConfiguration>();
+      m_config = Substitute.For<IGitCacheConfiguration>();
       m_git = Substitute.For<IGitContext>();
       m_gitExecuter = Substitute.For<IGitExecuter>();
       m_lfsExecuter = Substitute.For<IGitLFSExecuter>();
@@ -110,10 +95,11 @@ namespace git_cache_mstest.Controllers
       m_git.LFSExecuter.Returns(m_lfsExecuter);
       m_git.LocalFactory.Returns(m_localFactory);
       m_git.RemoteFactory.Returns(m_remoteFactory);
+      m_git.Configuration.Returns(m_config);
       m_shell = Substitute.For<IShell>();
     } /* End of Function - Initialize */
     /************************ Fields *****************************************/
-    IConfiguration m_config;
+    IGitCacheConfiguration m_config;
     IGitContext m_git;
     IShell m_shell;
     IGitExecuter m_gitExecuter;

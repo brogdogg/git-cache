@@ -2,13 +2,12 @@
  * File...: GitController.cs
  * Remarks: 
  */
-using git_cache.Git;
-using git_cache.Git.LFS;
-using git_cache.Git.Results;
+using git_cache.Services.Git;
+using git_cache.Services.Git.LFS;
+using git_cache.Services.Git.Results;
 using git_cache.Results;
-using git_cache.Shell;
+using git_cache.Services.Shell;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -32,10 +31,6 @@ namespace git_cache.Controllers
     /************************ Properties *************************************/
     /************************ Configuration **********************************/
     /// <summary>
-    /// Holding spot for the injected configuration
-    /// </summary>
-    IConfiguration Configuration { get; } = null;
-    /// <summary>
     /// 
     /// </summary>
     IGitContext GitContext { get; } = null;
@@ -57,13 +52,11 @@ namespace git_cache.Controllers
     /// <param name="remoteFactory">
     /// Factory for building <see cref="IRemoteRepository"/> objects
     /// </param>
-    public GitController(IConfiguration config,
+    public GitController(
       IGitContext gitContext,
       IShell shell)
       : base()
     {
-      if (null == (Configuration = config))
-        throw new ArgumentNullException("A valid configuration must be provided");
       if (null == (GitContext = gitContext))
         throw new ArgumentNullException("A valid git context must be provided");
       if (null == (Shell = shell))
@@ -71,6 +64,30 @@ namespace git_cache.Controllers
     } // end of function - GitController
 
     /************************ Methods ****************************************/
+    [HttpGet("{destinationServer}/{repositoryOwner}/{repository}/fetch")]
+    public async Task<ActionResult> FetchAsync(
+      string destinationServer,
+      string repositoryOwner,
+      string repository,
+      [FromQuery]string service,
+      [FromHeader]string authorization)
+    {
+      ActionResult retval = null;
+      var repo = GitContext.RemoteFactory.Build(destinationServer,
+        repositoryOwner,
+        repository,
+        authorization);
+
+      // Verify the authorization is OK, if not then return the error response
+      // from the actual git server
+      if (null != (retval = await CheckAuthorizationAsync(repo)))
+        return retval;
+      // Create a local repository based on the remote repo
+      var local = GitContext.LocalFactory.Build(repo, GitContext.Configuration);
+      retval = new JsonResult(Shell.Execute($"git -C \"{local.Path}\" log -2 --pretty=%h"));
+      return retval;
+
+    }
     // GET: api/Git/{server}/{repoOwner}/{repo}/info/refs?service={service}
     /// <summary>
     /// HTTP GET handler for fetch/clones from git
@@ -101,23 +118,15 @@ namespace git_cache.Controllers
       if (null != (retval = await CheckAuthorizationAsync(repo)))
         return retval;
       // Create a local repository based on the remote repo
-      var local = GitContext.LocalFactory.Build(repo, Configuration);
-      try
-      {
-        // Updates our local cache, if it has never been downloaded then it
-        // will be cloned, otherwise just a fetch is performed to update
-        // the local copy
-        await GitContext.UpdateLocalAsync(local);
-        // Then create a custom git service advertisement result to send
-        // back to the client, basically forwarding everything we just
-        // updated to the client now
-        retval = new ServiceAdvertisementResult(service, local, Shell);
-      } // end of try - to update first
-      catch (Exception exc)
-      {
-        Debug.WriteLine("Exception: " + exc);
-        retval = new StatusCodeResult(500);
-      } // end of catch - catch exception from update
+      var local = GitContext.LocalFactory.Build(repo, GitContext.Configuration);
+      // Updates our local cache, if it has never been downloaded then it
+      // will be cloned, otherwise just a fetch is performed to update
+      // the local copy
+      await GitContext.UpdateLocalAsync(local);
+      // Then create a custom git service advertisement result to send
+      // back to the client, basically forwarding everything we just
+      // updated to the client now
+      retval = new ServiceAdvertisementResult(service, local, Shell);
       return retval;
     } // end of function - GetAsync
 
@@ -147,19 +156,11 @@ namespace git_cache.Controllers
         authorization);
       if (null != (retval = await CheckAuthorizationAsync(repo)))
         return retval;
-      var local = GitContext.LocalFactory.Build(repo, Configuration);
-      try
-      {
-        retval = new ServiceResult(service,
-                                   local,
-                                   Shell,
-                                   contentEncoding == "gzip");
-      }
-      catch (Exception exc)
-      {
-        Debug.WriteLine("Exception: " + exc);
-        retval = new StatusCodeResult(500);
-      }
+      var local = GitContext.LocalFactory.Build(repo, GitContext.Configuration);
+      retval = new ServiceResult(service,
+                                 local,
+                                 Shell,
+                                 contentEncoding == "gzip");
       return retval;
     } // end of function - PostUploadPack
 
@@ -231,7 +232,7 @@ namespace git_cache.Controllers
         // We will use the file info object to get the file size later
         var fileInfo = new FileInfo(repo.LFSObjectPath(obj.OID));
 #warning Find a way to get the controller's mapping entry point to build a base URL
-        string baseUrl = $"{this.Request.Scheme}://{this.Request.Host}/api/Git";
+        string baseUrl = $"{Request.Scheme}://{Request.Host}/{Request.PathBase}/";
 
         // Right now, we only support a "download" action, so build it out
         actions.Download = new LFSActions.DownloadAction()
@@ -360,7 +361,7 @@ namespace git_cache.Controllers
     {
       return GitContext.LocalFactory.Build(
         GitContext.RemoteFactory.Build(server, owner, name, auth),
-        Configuration);
+        GitContext.Configuration);
     } // end of function - GetLocalRepo
 
     /************************ Fields *****************************************/
