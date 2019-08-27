@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\git-cache.core\git-cache.Services.csproj" />
+    <ProjectReference Include="..\git-cache.Services\git-cache.Services.csproj" />
   </ItemGroup>
 
 </Project>
