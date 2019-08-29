@@ -53,7 +53,7 @@ namespace git_cache.Services.Git
     public string Fetch(ILocalRepository local)
     {
       Shell.Execute($"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"");
-      return Shell.Execute($"git -C \"{local.Path}\" fetch --quiet");
+      return Shell.Execute($"git -C \"{local.Path}\" fetch --prune --quiet");
     } /* End of Function - Fetch */
 
     /*----------------------- FetchAsync ------------------------------------*/
@@ -64,7 +64,7 @@ namespace git_cache.Services.Git
     public async Task<string> FetchAsync(ILocalRepository local)
     {
       await Shell.ExecuteAsync($"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"");
-      return await Shell.ExecuteAsync($"git -C \"{local.Path}\" fetch --quiet");
+      return await Shell.ExecuteAsync($"git -C \"{local.Path}\" fetch --prune --quiet");
     } /* End of Function - FetchAsync */
     /************************ Static *****************************************/
 
