@@ -15,9 +15,9 @@ FROM microsoft/dotnet:2.2-sdk AS build
 WORKDIR /src
 COPY git-cache.sln ./
 COPY git-cache/git-cache.csproj git-cache/
-COPY git-cache-mstest/git-cache.mstest.csproj git-cache.mstest/
-COPY git-cache/git-cache.Services.csproj git-cache.Services/
-COPY git-cache/git-cache.Services.mstest.csproj git-cache.Services.mstest/
+COPY git-cache.mstest/git-cache.mstest.csproj git-cache.mstest/
+COPY git-cache.Services/git-cache.Services.csproj git-cache.Services/
+COPY git-cache.Services.mstest/git-cache.Services.mstest.csproj git-cache.Services.mstest/
 COPY docker-compose.dcproj ./
 RUN dotnet restore git-cache.sln -nowarn:msb3202,nu1503
 COPY . .
