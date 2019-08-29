@@ -7,6 +7,7 @@ using git_cache.Services.Configuration;
 using git_cache.Services.Git;
 using git_cache.Services.Shell;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using System;
@@ -34,7 +35,7 @@ namespace git_cache_mstest.Controllers
     [ExpectedException(typeof(ArgumentNullException))]
     public void ThrowsWhenGitContextNull()
     {
-      var a = new GitController(null, Substitute.For<IShell>());
+      var a = new GitController(null, Substitute.For<IShell>(), Substitute.For<ILogger<GitController>>());
     } /* End of Function - ThrowsWhenGitContextNull */
 
     /*----------------------- ThrowsWhenShellIsNull -------------------------*/
@@ -45,8 +46,19 @@ namespace git_cache_mstest.Controllers
     [ExpectedException(typeof(ArgumentNullException))]
     public void ThrowsWhenShellIsNull()
     {
-      var a = new GitController(Substitute.For<IGitContext>(), null);
+      var a = new GitController(Substitute.For<IGitContext>(), null, Substitute.For<ILogger<GitController>>());
     } /* End of Function - ThrowsWhenShellIsNull */
+
+    /*----------------------- ThrowsWhenLoggerIsNull ------------------------*/
+    /// <summary>
+    /// Verifies the constructor throws when the logger object is null
+    /// </summary>
+    [TestMethod]
+    [ExpectedException(typeof(ArgumentNullException))]
+    public void ThrowsWhenLoggerIsNull()
+    {
+      new GitController(Substitute.For<IGitContext>(), Substitute.For<IShell>(), null);
+    } /* End of Function - ThrowsWhenLoggerIsNull */
 
     /*----------------------- ReportsSuccessOnDeleteCachedRepo --------------*/
     /// <summary>
@@ -59,7 +71,7 @@ namespace git_cache_mstest.Controllers
       var owner = "owner";
       var repo = "repo";
       string auth = null;
-      var gitCtrl = new GitController(m_git, m_shell);
+      var gitCtrl = new GitController(m_git, m_shell, m_logger);
       var remoteRepo = Substitute.For<IRemoteRepository>();
       m_remoteFactory.Build(server, owner, repo, auth).Returns(remoteRepo);
       var localRepo = Substitute.For<ILocalRepository>();
@@ -97,11 +109,14 @@ namespace git_cache_mstest.Controllers
       m_git.RemoteFactory.Returns(m_remoteFactory);
       m_git.Configuration.Returns(m_config);
       m_shell = Substitute.For<IShell>();
+      m_logger = Substitute.For<ILogger<GitController>>();
     } /* End of Function - Initialize */
+
     /************************ Fields *****************************************/
     IGitCacheConfiguration m_config;
     IGitContext m_git;
     IShell m_shell;
+    ILogger<GitController> m_logger;
     IGitExecuter m_gitExecuter;
     IGitLFSExecuter m_lfsExecuter;
     ILocalRepositoryFactory m_localFactory;

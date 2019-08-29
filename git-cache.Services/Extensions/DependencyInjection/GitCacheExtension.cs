@@ -40,11 +40,12 @@ namespace git_cache.Services.Extensions.DependencyInjection
         sp.GetRequiredService<IOptions<GitCacheConfiguration>>().Value
         );
       services
-        .AddThreadSafeShell()
+        .AddShell()
         .AddSingleton<IGitExecuter, GitExecuter>()
         .AddSingleton<IGitLFSExecuter, GitLFSExecutor>()
         .AddSingleton<IGitContext, GitContext>()
-        .AddSingleton(typeof(IFuncSync<,>), typeof(FuncSync<,>));
+        .AddSingleton(typeof(IFuncSync<,>), typeof(FuncSync<,>))
+        .AddResourceLocks();
       return services;
     } /* End of Function - AddGitCacheServices */
 

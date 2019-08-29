@@ -14,6 +14,8 @@ using System.IO;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using git_cache.Filters;
 
 namespace git_cache.Controllers
 {
@@ -24,6 +26,7 @@ namespace git_cache.Controllers
   /// </summary>
   [Produces("application/json")]
   [Route("api/Git")]
+  [TypeFilter(typeof(ResourceLockFilter))]
   public class GitController : Controller
   {
     /*======================= PUBLIC ========================================*/
@@ -38,6 +41,7 @@ namespace git_cache.Controllers
     /// Gets the shell object
     /// </summary>
     IShell Shell { get; } = null;
+    ILogger<GitController> Logger { get; } = null;
     /************************ Construction ***********************************/
     /*----------------------- GitController ---------------------------------*/
     /// <summary>
@@ -54,13 +58,16 @@ namespace git_cache.Controllers
     /// </param>
     public GitController(
       IGitContext gitContext,
-      IShell shell)
+      IShell shell,
+      ILogger<GitController> logger)
       : base()
     {
       if (null == (GitContext = gitContext))
         throw new ArgumentNullException("A valid git context must be provided");
       if (null == (Shell = shell))
         throw new ArgumentNullException("A valid shell object must be provided");
+      if (null == (Logger = logger))
+        throw new ArgumentNullException("A valid logger must be provided");
     } // end of function - GitController
 
     /************************ Methods ****************************************/
@@ -107,6 +114,7 @@ namespace git_cache.Controllers
       [FromQuery]string service,
       [FromHeader]string authorization)
     {
+      Logger.LogTrace($"GET for: server={destinationServer}; owner={repositoryOwner}; repo={repository}");
       ActionResult retval = null;
       var repo = GitContext.RemoteFactory.Build(destinationServer,
         repositoryOwner,
@@ -116,7 +124,10 @@ namespace git_cache.Controllers
       // Verify the authorization is OK, if not then return the error response
       // from the actual git server
       if (null != (retval = await CheckAuthorizationAsync(repo)))
+      {
+        Logger.LogInformation("Authorization required, can't continue");
         return retval;
+      }
       // Create a local repository based on the remote repo
       var local = GitContext.LocalFactory.Build(repo, GitContext.Configuration);
       // Updates our local cache, if it has never been downloaded then it

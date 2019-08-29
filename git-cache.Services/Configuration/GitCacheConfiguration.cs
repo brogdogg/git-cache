@@ -14,6 +14,14 @@ namespace git_cache.Services.Configuration
   {
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
+    /************************ DisableHTTPS ***********************************/
+    /// <summary>
+    /// Gets/Sets a flag indicating to disable HTTPS 
+    /// </summary>
+    public bool DisableHTTPS
+    {
+      get; set;
+    } = false; /* End of Property - DisableHTTPS */
     /************************ LocalStoragePath *******************************/
     /// <summary>
     /// Gets/Sets the local storage path to use.
@@ -23,15 +31,11 @@ namespace git_cache.Services.Configuration
     {
       get; set;
     } = null; /* End of Property - LocalStoragePath */
-
-    /************************ DisableHTTPS ***********************************/
+    /************************ OperationTimeout *******************************/
     /// <summary>
-    /// Gets/Sets a flag indicating to disable HTTPS 
+    /// Gets/Sets the timeout in milliseconds for various operations
     /// </summary>
-    public bool DisableHTTPS
-    {
-      get; set;
-    } = false; /* End of Property - DisableHTTPS */
+    public int OperationTimeout { get; set; } = 600000;
     /************************ Properties *************************************/
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/

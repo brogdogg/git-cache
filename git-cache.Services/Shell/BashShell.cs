@@ -2,6 +2,7 @@
  * File...: BashShell.cs
  * Remarks: 
  */
+using Microsoft.Extensions.Logging;
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -22,6 +23,20 @@ namespace git_cache.Services.Shell
     /************************ Events *****************************************/
     /************************ Properties *************************************/
     /************************ Construction ***********************************/
+    /*----------------------- BashShell -------------------------------------*/
+    /// <summary>
+    /// Injection constructor
+    /// </summary>
+    /// <param name="logger">
+    /// Logging object
+    /// </param>
+    public BashShell(ILogger<BashShell> logger)
+    {
+      if(null == (m_logger = logger))
+      {
+        throw new ArgumentNullException("A valid logger object must be provided");
+      } // end of if - invalid logger
+    } /* End of Function - BashShell */
     /************************ Methods ****************************************/
     /*----------------------- Execute ---------------------------------------*/
     /// <summary>
@@ -30,6 +45,7 @@ namespace git_cache.Services.Shell
     /// <param name="command"></param>
     public string Execute(string command)
     {
+      m_logger.LogDebug("Executing command assuming success as (exitCode == 0)");
       return Execute(command, (exitCode) => exitCode != 0);
     } /* End of Function - Execute */
 
@@ -42,13 +58,14 @@ namespace git_cache.Services.Shell
     public string Execute(string command, Func<int, bool> isExitCodeFailure)
     {
       string retval = "";
+      m_logger.LogDebug("Setting up a memory stream to read stdout");
       using (var stream = new MemoryStream())
       {
         Execute(command, isExitCodeFailure, stream);
         stream.Position = 0;
         StreamReader sr = new StreamReader(stream);
         retval = sr.ReadToEnd();
-      }
+      } // end of using - memory stream
       return retval;
     } /* End of Function - Execute */
 
@@ -78,6 +95,7 @@ namespace git_cache.Services.Shell
           StandardOutputEncoding = Encoding.ASCII
         }
       };
+      m_logger.LogDebug($"Starting process for command: {command}");
       // This is no good, because if there is no newline, then we will not get this
       // event. We need a custom stream reader
       process.Start();
@@ -89,20 +107,25 @@ namespace git_cache.Services.Shell
       // we will setup to redirect the standard input for the process
       if(null != inputWriter)
       {
+        m_logger.LogDebug("InputWriter specified, using to work with stdin");
         inputWriter(process.StandardInput);
         process.StandardInput.Flush();
         process.StandardInput.Close();
       } // end of if - input writer action provided
 
+      m_logger.LogDebug("Waiting for process to exit");
       // Wait for the process to exit
       process.WaitForExit();
       // Then wait for the standard output to dry up
       stdoutReader.Wait();
+      m_logger.LogDebug($"Process exited with exit code: {process.ExitCode}");
 
       // Then check for errors
       if(null != isExitCodeFailure && isExitCodeFailure(process.ExitCode))
       {
-        throw new InvalidProgramException($"Failed to execute command; {process.StandardError.ReadToEnd()}");
+        string errMsg = $"Failed to execute command; {process.StandardError.ReadToEnd()}";
+        m_logger.LogError(errMsg);
+        throw new InvalidProgramException(errMsg);
       } // end of if - process exited with error
       return retval;
     } /* End of Function - Execute */
@@ -163,6 +186,10 @@ namespace git_cache.Services.Shell
           false);
     } /* End of Function - StartNewReader */
     /************************ Fields *****************************************/
+    /// <summary>
+    /// Logger item to use for logging
+    /// </summary>
+    private ILogger<BashShell> m_logger = null;
     /************************ Static *****************************************/
   } /* End of Class - BashShell */
 }

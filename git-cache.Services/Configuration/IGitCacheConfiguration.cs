@@ -21,6 +21,10 @@ namespace git_cache.Services.Configuration
     /// Gets/Sets the local storage path for cached items
     /// </summary>
     string LocalStoragePath { get; set; }
+    /// <summary>
+    /// Gets/Sets the timeout in milliseconds for various operations
+    /// </summary>
+    int OperationTimeout { get; set; }
   } /* End of Interface - IGitCacheConfiguration */
 
 }/* End of document - IGitCacheConfiguration.cs */
