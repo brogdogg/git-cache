@@ -9,7 +9,7 @@ namespace git_cache.Services.ResourceLock
   /// <summary>
   /// Factory class for resource locks
   /// </summary>
-  public class ResourceLockFactory<TLock> : IResourceLockFactory
+  public class ResourceLockFactory<TLock> : IResourceLockFactory<TLock>
     where TLock : IResourceLock, new()
   {
     /*======================= PUBLIC ========================================*/
@@ -23,7 +23,16 @@ namespace git_cache.Services.ResourceLock
     /// Should create a resource lock
     /// </summary>
     /// <returns></returns>
-    public IResourceLock Create() => new TLock();
+    public TLock Create() => new TLock();
+
+    /*----------------------- IResourceLockFactory.Create -------------------*/
+    /// <summary>
+    /// Explicit impl of <see cref="IResourceLockFactory.Create"/>
+    /// </summary>
+    IResourceLock IResourceLockFactory.Create()
+    {
+      return Create();
+    } /* End of Function - IResourceLockFactory.Create */
   } /* End of Class - ResourceLockFactory */
 }
 /* End of document - ResourceLockFactory.cs */

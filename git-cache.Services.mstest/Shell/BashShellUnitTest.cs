@@ -2,7 +2,10 @@
  * File...: GitContextUnitTest.cs
  * Remarks: 
  */
+using git_cache.Services.Shell;
+using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NSubstitute;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -21,22 +24,26 @@ namespace git_cache.Services.mstest.Shell
     /************************ Properties *************************************/
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
-    /************************ Fields *****************************************/
-    /************************ Static *****************************************/
+    /*----------------------- CanCreate -------------------------------------*/
+    /// <summary>
+    /// Verifies we can create an instance
+    /// </summary>
+    [TestMethod]
+    public void CanCreate()
+    {
+      var shell = new BashShell(Substitute.For<ILogger<BashShell>>());
+    } /* End of Function - CanCreate */
+    /*----------------------- ThrowsOnNullLogger ----------------------------*/
+    /// <summary>
+    /// Verifies the constructor throws when a logger is not provided
+    /// </summary>
+    [TestMethod]
+    [ExpectedException(typeof(ArgumentNullException))]
+    public void ThrowsOnNullLogger()
+    {
+      var shell = new BashShell(null);
+    } /* End of Function - ThrowsOnNullLogger */
 
-    /*======================= PROTECTED =====================================*/
-    /************************ Events *****************************************/
-    /************************ Properties *************************************/
-    /************************ Construction ***********************************/
-    /************************ Methods ****************************************/
-    /************************ Fields *****************************************/
-    /************************ Static *****************************************/
-
-    /*======================= PRIVATE =======================================*/
-    /************************ Events *****************************************/
-    /************************ Properties *************************************/
-    /************************ Construction ***********************************/
-    /************************ Methods ****************************************/
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
 

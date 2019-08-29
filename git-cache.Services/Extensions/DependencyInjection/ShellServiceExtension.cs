@@ -23,36 +23,20 @@ namespace git_cache.Services.Extensions.DependencyInjection
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
 
-    /*----------------------- AddThreadSafeShell ----------------------------*/
+    /*----------------------- AddShell --------------------------------------*/
     /// <summary>
-    /// 
+    /// Adds a <see cref="IShell"/> service to the services
     /// </summary>
     /// <param name="services"></param>
-    public static IServiceCollection AddThreadSafeShell(this IServiceCollection services)
-    {
-      // Register just types, to use DI for constructing
-      services.AddSingleton<BashShell>();
-      //services.AddSingleton<WindowShell>();
-      services.AddSingleton<ThreadSafeShell>();
-      // Then for the actual interface, we will use a lamba to
-      // build it up dynamically
-      services.AddSingleton<IShell>(sp =>
-      {
-        var retval = sp.GetRequiredService<ThreadSafeShell>();
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-          throw new InvalidOperationException("Shell for windows is not implemented");
-        else
-          retval.OSShell = sp.GetRequiredService<BashShell>();
-        return retval;
-      });
-      return services;
-    } /* End of Function - AddThreadSafeShell */
-
     public static IServiceCollection AddShell(this IServiceCollection services)
     {
+      // Add a bash shell
       services.AddSingleton<BashShell>();
+
       // TODO: Add Windows shell???
       //services.AddSingleton<WindowsShell>();
+
+      // For the interface, use system information to decide
       services.AddSingleton<IShell>(sp =>
       {
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -61,7 +45,7 @@ namespace git_cache.Services.Extensions.DependencyInjection
           return sp.GetRequiredService<BashShell>();
       });
       return services;
-    }
+    } /* End of Function - AddShell */
     /*----------------------- AddUnixShell ----------------------------------*/
     /// <summary>
     /// Adds the Unix shell service

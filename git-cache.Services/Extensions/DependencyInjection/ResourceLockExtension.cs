@@ -33,7 +33,7 @@ namespace git_cache.Services.Extensions.DependencyInjection
       services.AddSingleton(typeof(IResourceLockFactory<>), typeof(ResourceLockFactory<>));
       // But then for the non-specific factory, will default to our
       // ResourceLock instead
-      services.AddSingleton<IResourceLockFactory, ResourceLockFactory<ResourceLock.ResourceLock>>();
+      services.AddSingleton<IResourceLockFactory, ResourceLockFactory<Services.ResourceLock.ResourceLock>>();
       // And we will allow for a generic use of the lock manager, so a
       // consumer can use the type of key desired
       services.AddSingleton(typeof(IResourceLockManager<>), typeof(ResourceLockManager<>));

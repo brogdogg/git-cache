@@ -27,7 +27,7 @@ namespace git_cache.Services.ResourceLock
   /// Describes a factory class responsible for creating a specific types
   /// <see cref="IResourceLock"/> objects.
   /// </summary>
-  public interface IResourceLockFactory<TLock> : IResourceLock
+  public interface IResourceLockFactory<TLock> : IResourceLockFactory
     where TLock : IResourceLock, new()
   {
 

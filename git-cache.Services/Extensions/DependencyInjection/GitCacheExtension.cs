@@ -34,8 +34,6 @@ namespace git_cache.Services.Extensions.DependencyInjection
     {
       services.AddSingleton<IRemoteRepositoryFactory, RemoteRepositoryFactory>();
       services.AddSingleton<ILocalRepositoryFactory, LocalRepositoryFactory>();
-      services.AddTransient<IRemoteRepository, RemoteRepository>();
-      services.AddTransient<ILocalRepository, LocalRepository>();
       services.TryAddSingleton<IGitCacheConfiguration>(sp =>
         sp.GetRequiredService<IOptions<GitCacheConfiguration>>().Value
         );
@@ -44,7 +42,6 @@ namespace git_cache.Services.Extensions.DependencyInjection
         .AddSingleton<IGitExecuter, GitExecuter>()
         .AddSingleton<IGitLFSExecuter, GitLFSExecutor>()
         .AddSingleton<IGitContext, GitContext>()
-        .AddSingleton(typeof(IFuncSync<,>), typeof(FuncSync<,>))
         .AddResourceLocks();
       return services;
     } /* End of Function - AddGitCacheServices */

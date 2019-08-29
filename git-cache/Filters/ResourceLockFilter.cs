@@ -34,7 +34,7 @@ namespace git_cache.Filters
       if (null == (m_logger = logger))
         throw new ArgumentNullException("Must provide a valid logger object");
       if (null == (m_config = config))
-        throw new AccessViolationException("Must provide a valid configuration");
+        throw new ArgumentNullException("Must provide a valid configuration");
       return;
     } /* End of Function - ResourceLockFilter */
     /************************ Methods ****************************************/
