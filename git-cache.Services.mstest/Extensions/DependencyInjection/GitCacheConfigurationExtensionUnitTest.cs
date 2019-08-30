@@ -1,16 +1,14 @@
 ﻿/******************************************************************************
- * File...: 
+ * File...: GitCacheConfigurationExtensionUnitTest.cs
  * Remarks: 
  */
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
 
 namespace git_cache.Services.mstest.Extensions.DependencyInjection
 {
   /************************** GitCacheConfigurationExtensionUnitTest *********/
   /// <summary>
-  /// 
+  /// Tests the git-cache configuration extension method for adding services
   /// </summary>
   [TestClass]
   public class GitCacheConfigurationExtensionUnitTest

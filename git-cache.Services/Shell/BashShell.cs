@@ -33,16 +33,16 @@ namespace git_cache.Services.Shell
     public BashShell(ILogger<BashShell> logger)
     {
       if(null == (m_logger = logger))
-      {
         throw new ArgumentNullException("A valid logger object must be provided");
-      } // end of if - invalid logger
     } /* End of Function - BashShell */
     /************************ Methods ****************************************/
     /*----------------------- Execute ---------------------------------------*/
     /// <summary>
-    /// 
+    /// Executes the command, assuming exit code of zero (0) is success
     /// </summary>
-    /// <param name="command"></param>
+    /// <param name="command">
+    /// Command to execute from the bash shell.
+    /// </param>
     public string Execute(string command)
     {
       m_logger.LogDebug("Executing command assuming success as (exitCode == 0)");
@@ -51,10 +51,15 @@ namespace git_cache.Services.Shell
 
     /*----------------------- Execute ---------------------------------------*/
     /// <summary>
-    /// 
+    /// Executes the command, checking for success from the specified
+    /// functor.
     /// </summary>
-    /// <param name="command"></param>
-    /// <param name="isExitCodeFailure"></param>
+    /// <param name="command">
+    /// Command to execute.
+    /// </param>
+    /// <param name="isExitCodeFailure">
+    /// Functor to determine if exit code is a failure or not.
+    /// </param>
     public string Execute(string command, Func<int, bool> isExitCodeFailure)
     {
       string retval = "";
@@ -71,13 +76,26 @@ namespace git_cache.Services.Shell
 
     /*----------------------- Execute ---------------------------------------*/
     /// <summary>
-    /// 
+    /// Executes the specified command using a functor to decide if the
+    /// return code is a failure or not.
     /// </summary>
-    /// <param name="command"></param>
-    /// <param name="isExitCodeFailure"></param>
-    /// <param name="outStream"></param>
-    /// <param name="inputWriter"></param>
-    public int Execute(string command, Func<int, bool> isExitCodeFailure, Stream outStream, Action<StreamWriter> inputWriter = null)
+    /// <param name="command">
+    /// Command to execute
+    /// </param>
+    /// <param name="isExitCodeFailure">
+    /// Functor to decide if return code is considered a failure or not
+    /// </param>
+    /// <param name="outStream">
+    /// Stream to recieve the stdout from the process
+    /// </param>
+    /// <param name="inputWriter">
+    /// Optional input writer to provide input to stdin
+    /// </param>
+    public int Execute(
+      string command,
+      Func<int, bool> isExitCodeFailure,
+      Stream outStream,
+      Action<StreamWriter> inputWriter = null)
     {
       int retval = 0;
       var escapedArgs = command.Replace("\"", "\\\"");
@@ -132,9 +150,11 @@ namespace git_cache.Services.Shell
 
     /*----------------------- ExecuteAsync ----------------------------------*/
     /// <summary>
-    /// 
+    /// Executes the command asynchronously.
     /// </summary>
-    /// <param name="command"></param>
+    /// <param name="command">
+    /// Command to execute
+    /// </param>
     public Task<string> ExecuteAsync(string command)
     {
       return Task.Run(() => Execute(command));
@@ -142,10 +162,15 @@ namespace git_cache.Services.Shell
 
     /*----------------------- ExecuteAsync ----------------------------------*/
     /// <summary>
-    /// 
+    /// Executes the command asynchronously, using a functor to decide if the
+    /// return code is a failure or not.
     /// </summary>
-    /// <param name="command"></param>
-    /// <param name="isExitCodeFailure"></param>
+    /// <param name="command">
+    /// Command to execute.
+    /// </param>
+    /// <param name="isExitCodeFailure">
+    /// Functor to decide if the return code is a failure or not.
+    /// </param>
     public Task<string> ExecuteAsync(string command, Func<int, bool> isExitCodeFailure)
     {
       return Task.Run(() => Execute(command, isExitCodeFailure));

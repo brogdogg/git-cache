@@ -1,8 +1,10 @@
-﻿using git_cache.Services.ResourceLock;
+﻿/******************************************************************************
+ * File...: ResourceLockFactoryUnitTest.cs
+ * Remarks: 
+ */
+using git_cache.Services.ResourceLock;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace git_cache.Services.mstest.ResourceLock
 {
@@ -21,7 +23,7 @@ namespace git_cache.Services.mstest.ResourceLock
     /************************ Methods ****************************************/
     /*----------------------- CanCreate -------------------------------------*/
     /// <summary>
-    /// 
+    /// Verifies the resource lock factory can create a lock object
     /// </summary>
     [TestMethod]
     public void CanCreate()
@@ -34,13 +36,25 @@ namespace git_cache.Services.mstest.ResourceLock
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
 
+    /************************ TestResourceLock *******************************/
+    /// <summary>
+    /// Test class for testing the factory
+    /// </summary>
     private class TestResourceLock : IResourceLock
     {
+      /*===================== PUBLIC ========================================*/
+      /********************** Events *****************************************/
+      /********************** Properties *************************************/
+      /********************** Construction ***********************************/
+      /********************** Methods ****************************************/
       public void Dispose() => throw new NotImplementedException();
       public void Release() => throw new NotImplementedException();
       public bool WaitOne() => throw new NotImplementedException();
       public bool WaitOne(int milliseconds) => throw new NotImplementedException();
       public bool WaitOne(TimeSpan timeout) => throw new NotImplementedException();
-    }
+      /********************** Fields *****************************************/
+      /********************** Static *****************************************/
+    } /* End of Class - TestResourceLock */
   } /* End of Class - ResourceLockFactoryUnitTest */
 }
+/* End of document - ResourceLockFactoryUnitTest.cs */

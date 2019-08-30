@@ -2,19 +2,17 @@
  * File...: GitCacheExtensionUnitTest.cs
  * Remarks: 
  */
-using System;
 using git_cache.Services.Extensions.DependencyInjection;
 using git_cache.Services.Git;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NSubstitute;
 
 namespace git_cache.Services.mstest.Extensions.DependencyInjection
 {
   /************************** GitCacheExtensionUnitTest **********************/
   /// <summary>
-  /// 
+  /// Tests for verifying the behavior of the <see cref="IServiceCollection"/>
+  /// extension method, which configures for the git-cache operation
   /// </summary>
   [TestClass]
   public class GitCacheExtensionUnitTest : BaseExtensionUnitTest
@@ -26,7 +24,7 @@ namespace git_cache.Services.mstest.Extensions.DependencyInjection
     /************************ Methods ****************************************/
     /*----------------------- AddGitCacheServices ---------------------------*/
     /// <summary>
-    /// 
+    /// Verifies the correct services are added as expected.
     /// </summary>
     [TestMethod]
     public void AddGitCacheServices()
@@ -60,22 +58,6 @@ namespace git_cache.Services.mstest.Extensions.DependencyInjection
         typeof(GitContext));
       */
     } /* End of Function - AddGitCacheServices */
-    /************************ Fields *****************************************/
-    /************************ Static *****************************************/
-
-    /*======================= PROTECTED =====================================*/
-    /************************ Events *****************************************/
-    /************************ Properties *************************************/
-    /************************ Construction ***********************************/
-    /************************ Methods ****************************************/
-    /************************ Fields *****************************************/
-    /************************ Static *****************************************/
-
-    /*======================= PRIVATE =======================================*/
-    /************************ Events *****************************************/
-    /************************ Properties *************************************/
-    /************************ Construction ***********************************/
-    /************************ Methods ****************************************/
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
 

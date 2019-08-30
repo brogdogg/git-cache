@@ -12,7 +12,8 @@ namespace git_cache.Services.ResourceLock
   /// Basic implementation of the <see cref="IResourceLockManager{TKey}"/>
   /// interface.
   /// </summary>
-  public class ResourceLockManager<TKey> : DisposableBase, IResourceLockManager<TKey>
+  public class ResourceLockManager<TKey>
+    : DisposableBase, IResourceLockManager<TKey>
   {
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
@@ -22,7 +23,12 @@ namespace git_cache.Services.ResourceLock
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="factory"></param>
+    /// <param name="factory">
+    /// Factory class to use for resource locks, must not be null
+    /// </param>
+    /// <exception cref="ArgumentNullException">
+    /// If the <paramref name="factory"/> is null
+    /// </exception>
     public ResourceLockManager(IResourceLockFactory factory)
     {
       if (null == (m_factory = factory))
@@ -63,6 +69,35 @@ namespace git_cache.Services.ResourceLock
       return retval;
     } /* End of Function - BlockFor */
 
+    /*----------------------- GetFor ----------------------------------------*/
+    /// <summary>
+    /// Gets the <see cref="IResourceLock"/> associated with the specified
+    /// key value.
+    /// </summary>
+    /// <param name="key">
+    /// Key to retrieve resource lock for.
+    /// </param>
+    /// <remarks>
+    /// If a resource does not exist for the key, then one will be created.
+    /// </remarks>
+    public virtual IResourceLock GetFor(TKey key)
+    {
+      IResourceLock retval = null;
+      lock(m_lock)
+      {
+        // If the dictionary has the key, grab its value
+        if (m_resourceLocks.ContainsKey(key))
+          retval = m_resourceLocks[key];
+        // otherwise will need to create a new one
+        else
+        {
+          retval = m_factory.Create();
+          m_resourceLocks.Add(key, retval);
+        } // end of else
+      } // end of lock - on resources
+      return retval;
+    } /* End of Function - GetFor */
+
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
 
@@ -73,9 +108,12 @@ namespace git_cache.Services.ResourceLock
     /************************ Methods ****************************************/
     /*----------------------- Dispose ---------------------------------------*/
     /// <summary>
-    /// 
+    /// Disposes of the resources associated with this object.
     /// </summary>
-    /// <param name="disposing"></param>
+    /// <param name="disposing">
+    /// True to explicitly dispose, otherwise let the garbage collector do
+    /// its duty
+    /// </param>
     protected override void Dispose(bool disposing)
     {
       lock(m_lock)
@@ -91,30 +129,9 @@ namespace git_cache.Services.ResourceLock
           m_resourceLocks = null;
         } // end of if - valid resource dictionary
       } // end of disposing
-
       return;
     } /* End of Function - Dispose */
 
-    /*----------------------- GetFor ----------------------------------------*/
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="key"></param>
-    public virtual IResourceLock GetFor(TKey key)
-    {
-      IResourceLock retval = null;
-      lock(m_lock)
-      {
-        if (m_resourceLocks.ContainsKey(key))
-          retval = m_resourceLocks[key];
-        else
-        {
-          retval = m_factory.Create();
-          m_resourceLocks.Add(key, retval);
-        }
-      } // end of lock - on resources
-      return retval;
-    } /* End of Function - GetFor */
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
 
