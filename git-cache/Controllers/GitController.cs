@@ -26,6 +26,7 @@ namespace git_cache.Controllers
   /// </summary>
   [Produces("application/json")]
   [Route("api/Git")]
+  [TypeFilter(typeof(GitAuthorizationCheckFilter))]
   [TypeFilter(typeof(ResourceLockFilter))]
   public class GitController : Controller
   {
@@ -71,30 +72,6 @@ namespace git_cache.Controllers
     } // end of function - GitController
 
     /************************ Methods ****************************************/
-    [HttpGet("{destinationServer}/{repositoryOwner}/{repository}/fetch")]
-    public async Task<ActionResult> FetchAsync(
-      string destinationServer,
-      string repositoryOwner,
-      string repository,
-      [FromQuery]string service,
-      [FromHeader]string authorization)
-    {
-      ActionResult retval = null;
-      var repo = GitContext.RemoteFactory.Build(destinationServer,
-        repositoryOwner,
-        repository,
-        authorization);
-
-      // Verify the authorization is OK, if not then return the error response
-      // from the actual git server
-      if (null != (retval = await CheckAuthorizationAsync(repo)))
-        return retval;
-      // Create a local repository based on the remote repo
-      var local = GitContext.LocalFactory.Build(repo, GitContext.Configuration);
-      retval = new JsonResult(Shell.Execute($"git -C \"{local.Path}\" log -2 --pretty=%h"));
-      return retval;
-
-    }
     // GET: api/Git/{server}/{repoOwner}/{repo}/info/refs?service={service}
     /// <summary>
     /// HTTP GET handler for fetch/clones from git
