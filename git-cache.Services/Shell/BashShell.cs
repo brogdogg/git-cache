@@ -113,7 +113,7 @@ namespace git_cache.Services.Shell
           StandardOutputEncoding = Encoding.ASCII
         }
       };
-      m_logger.LogDebug($"Starting process for command: {command}");
+      m_logger.LogDebug($"Starting process for command");
       // This is no good, because if there is no newline, then we will not get this
       // event. We need a custom stream reader
       process.Start();
