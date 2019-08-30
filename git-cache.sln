@@ -12,7 +12,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		git-cache-data\Dockerfile = git-cache-data\Dockerfile
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "git-cache-mstest", "git-cache-mstest\git-cache-mstest.csproj", "{D891485D-6C9A-40D4-B98D-C51CCBDECA11}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "git-cache.mstest", "git-cache.mstest\git-cache.mstest.csproj", "{D891485D-6C9A-40D4-B98D-C51CCBDECA11}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "git-cache.Services", "git-cache.Services\git-cache.Services.csproj", "{C8BCB0D9-BE0D-45B5-A625-BB026C423FE6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "git-cache.Services.mstest", "git-cache.Services.mstest\git-cache.Services.mstest.csproj", "{09997068-C02F-42B2-9A2C-CF4CF4860EAB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,6 +36,14 @@ Global
 		{D891485D-6C9A-40D4-B98D-C51CCBDECA11}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D891485D-6C9A-40D4-B98D-C51CCBDECA11}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D891485D-6C9A-40D4-B98D-C51CCBDECA11}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C8BCB0D9-BE0D-45B5-A625-BB026C423FE6}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C8BCB0D9-BE0D-45B5-A625-BB026C423FE6}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C8BCB0D9-BE0D-45B5-A625-BB026C423FE6}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C8BCB0D9-BE0D-45B5-A625-BB026C423FE6}.Release|Any CPU.Build.0 = Release|Any CPU
+		{09997068-C02F-42B2-9A2C-CF4CF4860EAB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{09997068-C02F-42B2-9A2C-CF4CF4860EAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{09997068-C02F-42B2-9A2C-CF4CF4860EAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{09997068-C02F-42B2-9A2C-CF4CF4860EAB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
