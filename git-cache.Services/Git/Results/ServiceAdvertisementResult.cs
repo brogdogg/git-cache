@@ -53,10 +53,9 @@ namespace git_cache.Services.Git.Results
     {
       Service = service;
       if (null == (Repository = repo))
-        throw new ArgumentNullException("Invalid repository given, must not be null");
+        throw new ArgumentNullException(nameof(repo), "Invalid repository given, must not be null");
       if (null == (Shell = shell))
-        throw new ArgumentNullException("Invalid shell object givin, must not be null");
-      return;
+        throw new ArgumentNullException(nameof(shell), "Invalid shell object givin, must not be null");
     } /* End of Function - GitServiceAdvertisementResult */
 
     /************************ Methods ****************************************/
@@ -77,7 +76,6 @@ namespace git_cache.Services.Git.Results
       response.Body.Write(bytes, 0, bytes.Length);
       Shell.Execute($"{Service} --stateless-rpc --advertise-refs \"{Repository.Path}\"",
         (code) => code != 0, response.Body);
-      return;
     } /* End of Function - ExecuteResult */
     /************************ Fields *****************************************/
     /************************ Static *****************************************/

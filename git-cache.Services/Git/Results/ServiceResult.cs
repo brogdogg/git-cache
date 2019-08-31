@@ -55,9 +55,11 @@ namespace git_cache.Services.Git.Results
       UseGZip = useGzip;
       if (null == (Repository = repo))
         throw new ArgumentNullException(
+          nameof(repo),
           "Local repository is invalid, value must not be null");
       if (null == (Shell = shell))
         throw new ArgumentNullException(
+          nameof(shell),
           "Shell object is invalid, value must not be null");
     } /* End of Function - GitServiceResultResult */
     /************************ Methods ****************************************/
@@ -86,8 +88,6 @@ namespace git_cache.Services.Git.Results
         FileStream fs = new FileStream("/tmp/test", FileMode.Create, FileAccess.Write);
         using (var fsw = new StreamWriter(fs, Encoding.ASCII))
         {
-          char[] buffer = new char[8096];
-          var bodyStream = context.HttpContext.Request.Body;
           using (var inputWriter = new StreamWriter(writer.BaseStream, Encoding.ASCII, 8096, true))
           {
             using (var inputReader = new StreamReader(stream, Encoding.UTF8, true, 8096, true))
@@ -104,7 +104,6 @@ namespace git_cache.Services.Git.Results
       } // end of lambda
       );
       if (gzipStream != null) gzipStream.Dispose();
-      return;
     } /* End of Function - ExecuteResult */
     /************************ Fields *****************************************/
     /************************ Static *****************************************/

@@ -64,15 +64,14 @@ namespace git_cache.Controllers
       : base()
     {
       if (null == (GitContext = gitContext))
-        throw new ArgumentNullException("A valid git context must be provided");
+        throw new ArgumentNullException(nameof(gitContext), "A valid git context must be provided");
       if (null == (Shell = shell))
-        throw new ArgumentNullException("A valid shell object must be provided");
+        throw new ArgumentNullException(nameof(shell), "A valid shell object must be provided");
       if (null == (Logger = logger))
-        throw new ArgumentNullException("A valid logger must be provided");
+        throw new ArgumentNullException(nameof(logger), "A valid logger must be provided");
     } // end of function - GitController
 
     /************************ Methods ****************************************/
-    // GET: api/Git/{server}/{repoOwner}/{repo}/info/refs?service={service}
     /// <summary>
     /// HTTP GET handler for fetch/clones from git
     /// </summary>
@@ -137,7 +136,7 @@ namespace git_cache.Controllers
       [FromHeader]string authorization,
       [FromHeader(Name = "content-encoding")]string contentEncoding)
     {
-      ActionResult retval = new OkResult();
+      ActionResult retval = null;
       var repo = GitContext.RemoteFactory.Build(destinationServer,
         repositoryOwner,
         repository,
@@ -179,7 +178,7 @@ namespace git_cache.Controllers
     /// For more details, see https://github.com/git-lfs/git-lfs/blob/master/docs/api/batch.md
     /// </remarks>
     [HttpPost("{destinationServer}/{repositoryOwner}/{repository}/info/lfs/objects/batch")]
-    public async Task<ActionResult> LFSBatchPost(
+    public ActionResult LFSBatchPost(
       string destinationServer,
       string repositoryOwner,
       string repository,
@@ -189,7 +188,7 @@ namespace git_cache.Controllers
       // Create a reference to the local cached repository
       var local = GetLocalRepo(destinationServer, repositoryOwner, repository, authorization);
       // And then return a JSON result for the LFS objects requested
-      return new JsonResult(await CreateBatchLFSResponse(local, value));
+      return new JsonResult(CreateBatchLFSResponse(local, value));
     } // end of function - LFSBatchPost
 
     /// <summary>
@@ -206,13 +205,13 @@ namespace git_cache.Controllers
     /// Task generating a <see cref="BatchResponseObject"/>, with information to
     /// send to the client
     /// </returns>
-    public async Task<BatchResponseObject> CreateBatchLFSResponse(ILocalRepository repo, BatchRequestObject reqObj)
+    public BatchResponseObject CreateBatchLFSResponse(ILocalRepository repo, BatchRequestObject reqObj)
     {
       // Create our main response object
       BatchResponseObject retval = new BatchResponseObject();
 
       // Loop through all of the objects in the request object
-      foreach(var obj in reqObj.Objects)
+      foreach (var obj in reqObj.Objects)
       {
         // We will need a list of actions to return
         LFSActions actions = new LFSActions();
@@ -224,20 +223,20 @@ namespace git_cache.Controllers
 
         // Right now, we only support a "download" action, so build it out
         actions.Download = new LFSActions.DownloadAction()
-          {
-            ExpiresAt = null,
-            ExpiresIn = 0,
-            HREF = $"{baseUrl}/{repo.Remote.Server}/{repo.Remote.Owner}/{repo.Remote.Name}/lfs/download/{obj.OID}"
-          };
+        {
+          ExpiresAt = null,
+          ExpiresIn = 0,
+          HREF = $"{baseUrl}/{repo.Remote.Server}/{repo.Remote.Owner}/{repo.Remote.Name}/lfs/download/{obj.OID}"
+        };
 
         retval.Objects.Add(new BatchResponseObject.ResponseLFSItem()
-          {
-            Authenticated = true,
-            OID = obj.OID,
-            Size = (int)fileInfo.Length,
-            Actions = actions,
-            Error = null
-          });
+        {
+          Authenticated = true,
+          OID = obj.OID,
+          Size = (int)fileInfo.Length,
+          Actions = actions,
+          Error = null
+        });
       } // end of foreach - object in the LFS request objects call
       return retval;
     } // end of function - CreateBatchLFSResponse

@@ -73,11 +73,11 @@ namespace git_cache.Services.Git
       bool disableHTTPS = false)
     {
       if (null == (Server = server))
-        throw new ArgumentNullException("Must provide a property server name");
+        throw new ArgumentNullException(nameof(server), "Must provide a property server name");
       if (null == (Owner = owner))
-        throw new ArgumentNullException("Must provide a valid owner name");
+        throw new ArgumentNullException(nameof(owner), "Must provide a valid owner name");
       if (null == (Name = name))
-        throw new ArgumentNullException("Must provide a valid name for the repository");
+        throw new ArgumentNullException(nameof(name), "Must provide a valid name for the repository");
       else if (Name.EndsWith(".git"))
         Name = Name.Remove(Name.LastIndexOf(".git"));
       Auth = auth;

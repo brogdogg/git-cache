@@ -83,7 +83,7 @@ namespace git_cache.Services.IO
       bool closeStream)
     {
       if (null == (BaseStream = stream))
-        throw new ArgumentNullException("Invalid stream specified, must be non-null");
+        throw new ArgumentNullException(nameof(stream), "Invalid stream specified, must be non-null");
       BufferSize = 8096 * 4; // 32k
       DataReceived = handler;
       CancelTokenSource = new CancellationTokenSource();
@@ -170,6 +170,40 @@ namespace git_cache.Services.IO
     /************************ Properties *************************************/
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
+    /// <summary>
+    /// Explicit dispose method
+    /// </summary>
+    /// <param name="disposing">
+    /// Are we explicitly disposing, or called from the destructor
+    /// </param>
+    protected virtual void Dispose(bool disposing)
+    {
+      if (!CancelTokenSource.IsCancellationRequested)
+      {
+        CancelTokenSource.Cancel();
+      } // end of if - cancel has not already be requested
+      try
+      {
+#warning Should revisit this wait on the data reader
+        DataReader.Wait(4000);
+      }
+      catch (Exception)
+      {
+        // Nothing to do with this exception at this point
+      }
+
+      if (disposing)
+      {
+        if (CloseStream && null != BaseStream)
+        {
+          BaseStream.Close();
+          BaseStream.Dispose();
+        } // end of if - we should close the base stream
+        CancelTokenSource.Dispose();
+      } // end of if - explicitly disposing
+      BaseStream = null;
+      CancelTokenSource = null;
+    } // end of function - Dispose
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
 
@@ -204,36 +238,6 @@ namespace git_cache.Services.IO
 
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
-    /// <summary>
-    /// Explicit dispose method
-    /// </summary>
-    /// <param name="disposing">
-    /// Are we explicitly disposing, or called from the destructor
-    /// </param>
-    private void Dispose(bool disposing)
-    {
-      if (!CancelTokenSource.IsCancellationRequested)
-      {
-        CancelTokenSource.Cancel();
-      } // end of if - cancel has not already be requested
-      try
-      {
-        DataReader.Wait(4000);
-      }
-      catch (Exception) {; }
-
-      if (disposing)
-      {
-        if (CloseStream && null != BaseStream)
-        {
-          BaseStream.Close();
-          BaseStream.Dispose();
-        } // end of if - we should close the base stream
-        CancelTokenSource.Dispose();
-      } // end of if - explicitly disposing
-      BaseStream = null;
-      CancelTokenSource = null;
-    } // end of function - Dispose
 
     /// <summary>
     /// Asynchronously reads data from the stream firing the events

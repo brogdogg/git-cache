@@ -27,7 +27,7 @@ namespace git_cache.Services.ResourceLock
   /// Describes a factory class responsible for creating a specific types
   /// <see cref="IResourceLock"/> objects.
   /// </summary>
-  public interface IResourceLockFactory<TLock> : IResourceLockFactory
+  public interface IResourceLockFactory<out TLock> : IResourceLockFactory
     where TLock : IResourceLock, new()
   {
 
@@ -39,7 +39,7 @@ namespace git_cache.Services.ResourceLock
     /// obect.
     /// </summary>
     /// <returns></returns>
-    TLock Create();
+    new TLock Create();
   } /* End of Interface - IResourceLockFactory */
 }
 /* End of document - IResourceLockFactory.cs */

@@ -28,9 +28,9 @@ namespace git_cache.Services.Git.LFS
     public static string LFSObjectPath(this ILocalRepository repo, string oid)
     {
       if (oid == null)
-        throw new ArgumentNullException("OID must not be null");
+        throw new ArgumentNullException(nameof(oid), "OID must not be null");
       if (oid.Length != 64)
-        throw new ArgumentException("OID does not appear to be correct length");
+        throw new ArgumentException("OID does not appear to be correct length", nameof(oid));
       var objFilePath = $"lfs/objects/{oid.Substring(0, 2)}/{oid.Substring(2, 2)}/{oid}";
       var fullLfsObjectPath = System.IO.Path.Combine(repo.Path, objFilePath);
       return fullLfsObjectPath;

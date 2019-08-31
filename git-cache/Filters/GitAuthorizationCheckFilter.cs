@@ -38,7 +38,7 @@ namespace git_cache.Filters
     public GitAuthorizationCheckFilter(IRemoteRepositoryFactory factory)
     {
       if (null == (m_factory = factory))
-        throw new ArgumentNullException("Must provide a valid factory class");
+        throw new ArgumentNullException(nameof(factory), "Must provide a valid factory class");
     } /* End of Function - GitAuthorizationCheckFilter */
     /************************ Methods ****************************************/
     /*----------------------- OnResourceExecutionAsync ----------------------*/
@@ -134,7 +134,7 @@ namespace git_cache.Filters
 
 
     /************************ Fields *****************************************/
-    IRemoteRepositoryFactory m_factory;
+    private readonly IRemoteRepositoryFactory m_factory;
     /************************ Static *****************************************/
   } /* End of Class - GitAuthorizationCheckFilter */
 }

@@ -30,12 +30,11 @@ namespace git_cache.Filters
       ILogger<ResourceLockFilter> logger)
     {
       if (null == (m_lockManager = lockMgr))
-        throw new ArgumentNullException("A valid lock manager must be provided");
+        throw new ArgumentNullException(nameof(lockMgr), "A valid lock manager must be provided");
       if (null == (m_logger = logger))
-        throw new ArgumentNullException("Must provide a valid logger object");
+        throw new ArgumentNullException(nameof(logger), "Must provide a valid logger object");
       if (null == (m_config = config))
-        throw new ArgumentNullException("Must provide a valid configuration");
-      return;
+        throw new ArgumentNullException(nameof(config), "Must provide a valid configuration");
     } /* End of Function - ResourceLockFilter */
     /************************ Methods ****************************************/
     /*----------------------- OnResourceExecuted ----------------------------*/
@@ -96,10 +95,10 @@ namespace git_cache.Filters
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
     /************************ Fields *****************************************/
-    IResourceLockManager<string> m_lockManager;
-    IResourceLock m_lock;
-    ILogger<ResourceLockFilter> m_logger;
-    IGitCacheConfiguration m_config;
+    private IResourceLock m_lock;
+    private readonly IResourceLockManager<string> m_lockManager;
+    private readonly ILogger<ResourceLockFilter> m_logger;
+    private readonly IGitCacheConfiguration m_config;
     /************************ Static *****************************************/
   } /* End of Class - ResourceLockFilter */
 }

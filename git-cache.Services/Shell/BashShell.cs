@@ -33,7 +33,7 @@ namespace git_cache.Services.Shell
     public BashShell(ILogger<BashShell> logger)
     {
       if(null == (m_logger = logger))
-        throw new ArgumentNullException("A valid logger object must be provided");
+        throw new ArgumentNullException(nameof(logger), "A valid logger object must be provided");
     } /* End of Function - BashShell */
     /************************ Methods ****************************************/
     /*----------------------- Execute ---------------------------------------*/
@@ -214,7 +214,7 @@ namespace git_cache.Services.Shell
     /// <summary>
     /// Logger item to use for logging
     /// </summary>
-    private ILogger<BashShell> m_logger = null;
+    private readonly ILogger<BashShell> m_logger = null;
     /************************ Static *****************************************/
   } /* End of Class - BashShell */
 }

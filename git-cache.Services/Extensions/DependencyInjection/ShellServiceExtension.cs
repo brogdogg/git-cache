@@ -34,7 +34,6 @@ namespace git_cache.Services.Extensions.DependencyInjection
       services.AddSingleton<BashShell>();
 
       // TODO: Add Windows shell???
-      //services.AddSingleton<WindowsShell>();
 
       // For the interface, use system information to decide
       services.AddSingleton<IShell>(sp =>
