@@ -43,5 +43,5 @@ At this point should be able to clone using the cache:
 
 ## Configuration
 
-The current default port on the host is `8085`, found in the
-main `docker-compose.yml` file.
+The default port on the host is `8085`. This can be controlled with
+an environment variable `GIT_HTTP_PORT=8888` or with a `.env` file.

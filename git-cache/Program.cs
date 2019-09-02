@@ -11,7 +11,7 @@ namespace git_cache
   /// <summary>
   /// Main class for the program
   /// </summary>
-  public class Program
+  public static class Program
   {
 
     /*======================= PUBLIC ========================================*/

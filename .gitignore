@@ -502,3 +502,9 @@ ASALocalRun/
 .localhistory/
 
 # End of https://www.gitignore.io/api/macos,aspnetcore,visualstudio,visualstudiocode
+
+# Ignore the .ENV file
+.env
+
+# Ignore SonarQube folder
+.sonarqube

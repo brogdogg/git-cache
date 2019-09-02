@@ -10,13 +10,13 @@ services:
 
   git-cache:
     image: gitcache
+    depends_on:
+      - git-cache-data
     build:
       context: .
       dockerfile: git-cache/Dockerfile
     volumes:
       - git-cache-data-volume:/var/gitcache
-    ports:
-      - "8085:80"
 
 volumes:
   git-cache-data-volume:

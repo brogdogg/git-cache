@@ -39,12 +39,10 @@ namespace git_cache.Results
     {
       var response = context.HttpContext.Response;
       response.StatusCode = (int)BaseResponse.StatusCode;
-      BaseResponse.Headers.All((header) =>
-      {
-        response.Headers.Add(header.Key, new StringValues(header.Value.ToArray()));
-        return true;
-      });
-      return;
+      foreach (var header in BaseResponse.Headers)
+        response.Headers.Add(
+          header.Key,
+          new StringValues(header.Value.ToArray()));
     } /* End of Function - ExecuteResult */
     /************************ Fields *****************************************/
     /************************ Static *****************************************/

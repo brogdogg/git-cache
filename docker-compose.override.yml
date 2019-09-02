@@ -5,4 +5,4 @@ services:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
     ports:
-      - "8085:80"
+      - "${GIT_HTTP_PORT:-8085}:80"
