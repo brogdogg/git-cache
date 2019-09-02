@@ -43,7 +43,6 @@ namespace git_cache.Services.IO
     {
       Buffer = buffer;
       ByteCount = byteCount;
-      return;
     } // end of function - DataReceivedEventArgs
     /************************ Methods ****************************************/
     /************************ Fields *****************************************/
@@ -108,7 +107,6 @@ namespace git_cache.Services.IO
     public void CancelReadOperations()
     {
       CancelTokenSource.Cancel();
-      return;
     } // end of function - CancelReadOperations
 
     /// <summary>

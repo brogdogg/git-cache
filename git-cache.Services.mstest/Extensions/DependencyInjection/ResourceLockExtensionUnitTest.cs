@@ -47,7 +47,6 @@ namespace git_cache.Services.mstest.Extensions.DependencyInjection
       Assert.IsInstanceOfType(
         serviceProvider.GetService<IResourceLockFactory<FakeResourceLock>>(),
         typeof(ResourceLockFactory<FakeResourceLock>));
-      return;
     } /* End of Function - AddResourceLocks */
     /************************ Fields *****************************************/
     /************************ Static *****************************************/

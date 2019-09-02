@@ -26,8 +26,8 @@ namespace git_cache.Controllers
   /// </summary>
   [Produces("application/json")]
   [Route("api/Git")]
-  [TypeFilter(typeof(GitAuthorizationCheckFilter))]
-  [TypeFilter(typeof(ResourceLockFilter))]
+  [TypeFilter(typeof(GitAuthorizationCheckFilterAttribute))]
+  [TypeFilter(typeof(ResourceLockFilterAttribute))]
   public class GitController : Controller
   {
     /*======================= PUBLIC ========================================*/
@@ -97,13 +97,6 @@ namespace git_cache.Controllers
         repository,
         authorization);
 
-      // Verify the authorization is OK, if not then return the error response
-      // from the actual git server
-      if (null != (retval = await CheckAuthorizationAsync(repo)))
-      {
-        Logger.LogInformation("Authorization required, can't continue");
-        return retval;
-      }
       // Create a local repository based on the remote repo
       var local = GitContext.LocalFactory.Build(repo, GitContext.Configuration);
       // Updates our local cache, if it has never been downloaded then it
@@ -128,7 +121,7 @@ namespace git_cache.Controllers
     /// <param name="contentEncoding"></param>
     /// <returns></returns>
     [HttpPost("{destinationServer}/{repositoryOwner}/{repository}/{service}", Name = "Post")]
-    public async Task<ActionResult> PostUploadPack(
+    public ActionResult PostUploadPack(
       string destinationServer,
       string repositoryOwner,
       string repository,
@@ -141,8 +134,6 @@ namespace git_cache.Controllers
         repositoryOwner,
         repository,
         authorization);
-      if (null != (retval = await CheckAuthorizationAsync(repo)))
-        return retval;
       var local = GitContext.LocalFactory.Build(repo, GitContext.Configuration);
       retval = new ServiceResult(service,
                                  local,
@@ -359,56 +350,6 @@ namespace git_cache.Controllers
     /************************ Properties *************************************/
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
-
-    /// <summary>
-    /// Authenticates asynchronously
-    /// </summary>
-    /// <param name="repo">
-    /// The remote repository to authenticate against
-    /// </param>
-    /// <returns>
-    /// Task for getting the HTTP Response from the authentication request
-    /// </returns>
-    private async Task<HttpResponseMessage> AuthenticateAsync(IRemoteRepository repo)
-    {
-      // Create a HTTP client to work with
-      HttpClient client = new HttpClient();
-      // Clear out the headers and setup our own
-      client.DefaultRequestHeaders.Accept.Clear();
-      // Attach the authentication if we have it
-      if (null != repo.Auth)
-        client.DefaultRequestHeaders.Authorization
-          = new AuthenticationHeaderValue(repo.Auth.Scheme,
-                                          repo.Auth.Encoded);
-      // Pretend we are a git client
-      client.DefaultRequestHeaders.UserAgent.Add(
-        new ProductInfoHeaderValue("git", "1.0"));
-      // Finally go ahead and authenticate against the info/refs url
-      string url = $"{repo.Url}/info/refs?service=git-upload-pack";
-      return await client.GetAsync(url);
-    } // end of function - AuthenticateAsync
-
-    /// <summary>
-    /// Checks the authorization against the remote repository
-    /// </summary>
-    /// <param name="repo">
-    /// Remote repository to work with
-    /// </param>
-    /// <returns>
-    /// The forwarded result task
-    /// </returns>
-    private async Task<ActionResult> CheckAuthorizationAsync(IRemoteRepository repo)
-    {
-      ActionResult retval = null;
-      // Authenticate the repository
-      var resp = await AuthenticateAsync(repo);
-      // If we were not successful, then we will forward the result back to the
-      // user
-      if (System.Net.HttpStatusCode.OK != resp.StatusCode)
-        retval = new ForwardedResult(resp);
-      return retval;
-    } // end of function - CheckAuthorizationAsync
-
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
 

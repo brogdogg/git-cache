@@ -1,5 +1,5 @@
 ﻿/******************************************************************************
- * File...: ResourceLockFilter.cs
+ * File...: ResourceLockFilterAttribute.cs
  * Remarks: 
  */
 using git_cache.Services.Configuration;
@@ -10,24 +10,24 @@ using System;
 
 namespace git_cache.Filters
 {
-  /************************** ResourceLockFilter *****************************/
+  /************************** ResourceLockFilterAttribute ********************/
   /// <summary>
   /// Filter to be used for locking resources
   /// </summary>
-  public class ResourceLockFilter : Attribute, IResourceFilter
+  public class ResourceLockFilterAttribute : Attribute, IResourceFilter
   {
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
     /************************ Properties *************************************/
     /************************ Construction ***********************************/
-    /*----------------------- ResourceLockFilter ----------------------------*/
+    /*----------------------- ResourceLockFilterAttribute -------------------*/
     /// <summary>
     /// 
     /// </summary>
-    public ResourceLockFilter(
+    public ResourceLockFilterAttribute(
       IGitCacheConfiguration config,
       IResourceLockManager<string> lockMgr,
-      ILogger<ResourceLockFilter> logger)
+      ILogger<ResourceLockFilterAttribute> logger)
     {
       if (null == (m_lockManager = lockMgr))
         throw new ArgumentNullException(nameof(lockMgr), "A valid lock manager must be provided");
@@ -35,7 +35,7 @@ namespace git_cache.Filters
         throw new ArgumentNullException(nameof(logger), "Must provide a valid logger object");
       if (null == (m_config = config))
         throw new ArgumentNullException(nameof(config), "Must provide a valid configuration");
-    } /* End of Function - ResourceLockFilter */
+    } /* End of Function - ResourceLockFilterAttribute */
     /************************ Methods ****************************************/
     /*----------------------- OnResourceExecuted ----------------------------*/
     /// <summary>
@@ -97,9 +97,9 @@ namespace git_cache.Filters
     /************************ Fields *****************************************/
     private IResourceLock m_lock;
     private readonly IResourceLockManager<string> m_lockManager;
-    private readonly ILogger<ResourceLockFilter> m_logger;
+    private readonly ILogger<ResourceLockFilterAttribute> m_logger;
     private readonly IGitCacheConfiguration m_config;
     /************************ Static *****************************************/
-  } /* End of Class - ResourceLockFilter */
+  } /* End of Class - ResourceLockFilterAttribute */
 }
-/* End of document - ResourceLockFilter.cs */
+/* End of document - ResourceLockFilterAttribute.cs */

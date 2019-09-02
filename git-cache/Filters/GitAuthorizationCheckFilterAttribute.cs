@@ -1,5 +1,5 @@
 ﻿/******************************************************************************
- * File...: GitAuthorizationCheckFilter.cs
+ * File...: GitAuthorizationCheckFilterAttribute.cs
  * Remarks: 
  */
 using git_cache.Results;
@@ -14,18 +14,18 @@ using System.Threading.Tasks;
 
 namespace git_cache.Filters
 {
-  /************************** GitAuthorizationCheckFilter ********************/
+  /************************** GitAuthorizationCheckFilterAttribute ***********/
   /// <summary>
   /// Filter for checking to see if authentication is required for
   /// syncing
   /// </summary>
-  public class GitAuthorizationCheckFilter : Attribute, IAsyncResourceFilter
+  public class GitAuthorizationCheckFilterAttribute : Attribute, IAsyncResourceFilter
   {
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
     /************************ Properties *************************************/
     /************************ Construction ***********************************/
-    /*----------------------- GitAuthorizationCheckFilter -------------------*/
+    /*----------------------- GitAuthorizationCheckFilterAttribute ----------*/
     /// <summary>
     /// Constructor
     /// </summary>
@@ -35,11 +35,11 @@ namespace git_cache.Filters
     /// <exception cref="ArgumentNullException">
     /// If the factory is null
     /// </exception>
-    public GitAuthorizationCheckFilter(IRemoteRepositoryFactory factory)
+    public GitAuthorizationCheckFilterAttribute(IRemoteRepositoryFactory factory)
     {
       if (null == (m_factory = factory))
         throw new ArgumentNullException(nameof(factory), "Must provide a valid factory class");
-    } /* End of Function - GitAuthorizationCheckFilter */
+    } /* End of Function - GitAuthorizationCheckFilterAttribute */
     /************************ Methods ****************************************/
     /*----------------------- OnResourceExecutionAsync ----------------------*/
     /// <summary>
@@ -136,6 +136,6 @@ namespace git_cache.Filters
     /************************ Fields *****************************************/
     private readonly IRemoteRepositoryFactory m_factory;
     /************************ Static *****************************************/
-  } /* End of Class - GitAuthorizationCheckFilter */
+  } /* End of Class - GitAuthorizationCheckFilterAttribute */
 }
-/* End of document - GitAuthorizationCheckFilter.cs */
+/* End of document - GitAuthorizationCheckFilterAttribute.cs */

@@ -39,7 +39,7 @@ namespace git_cache.mstest.Filters
     [TestInitialize]
     public void Initialize()
     {
-      m_logger = Substitute.For<ILogger<ResourceLockFilter>>();
+      m_logger = Substitute.For<ILogger<ResourceLockFilterAttribute>>();
       m_config = Substitute.For<IGitCacheConfiguration>();
       m_mgr = Substitute.For<IResourceLockManager<string>>();
       m_lock = Substitute.For<IResourceLock>();
@@ -78,7 +78,7 @@ namespace git_cache.mstest.Filters
         Substitute.For<IList<IFilterMetadata>>(),
         Substitute.For<IList<IValueProviderFactory>>());
 
-      var filter = new ResourceLockFilter(m_config, m_mgr, m_logger);
+      var filter = new ResourceLockFilterAttribute(m_config, m_mgr, m_logger);
       filter.OnResourceExecuting(context);
       m_mgr.Received(1).BlockFor("test_owner_repo", m_timeout);
     } /* End of Function - OnResourceExecuting */
@@ -95,7 +95,7 @@ namespace git_cache.mstest.Filters
         m_actionContext,
         Substitute.For<IList<IFilterMetadata>>());
 
-      var filter = new ResourceLockFilter(m_config, m_mgr, m_logger);
+      var filter = new ResourceLockFilterAttribute(m_config, m_mgr, m_logger);
       filter.OnResourceExecuted(context);
       m_lock.Received(0).Release();
     } /* End of Function - OnResourceExecutedWithoutExecuting */
@@ -119,7 +119,7 @@ namespace git_cache.mstest.Filters
           m_actionContext,
           filters);
 
-      var filter = new ResourceLockFilter(m_config, m_mgr, m_logger);
+      var filter = new ResourceLockFilterAttribute(m_config, m_mgr, m_logger);
       filter.OnResourceExecuting(exingContext);
       filter.OnResourceExecuted(exedContext);
       m_lock.Received(1).Release();
@@ -134,7 +134,7 @@ namespace git_cache.mstest.Filters
     [ExpectedException(typeof(ArgumentNullException))]
     public void ThrowsOnNullConfig()
     {
-      var filter = new ResourceLockFilter(null, m_mgr, m_logger);
+      var filter = new ResourceLockFilterAttribute(null, m_mgr, m_logger);
     } /* End of Function - ThrowsOnNullConfig */
 
     /*----------------------- ThrowsOnNullManager ---------------------------*/
@@ -146,7 +146,7 @@ namespace git_cache.mstest.Filters
     [ExpectedException(typeof(ArgumentNullException))]
     public void ThrowsOnNullManager()
     {
-      var filter = new ResourceLockFilter(m_config, null, m_logger);
+      var filter = new ResourceLockFilterAttribute(m_config, null, m_logger);
     } /* End of Function - ThrowsOnNullManager */
 
     /*----------------------- ThrowsOnNullLogger ----------------------------*/
@@ -157,7 +157,7 @@ namespace git_cache.mstest.Filters
     [ExpectedException(typeof(ArgumentNullException))]
     public void ThrowsOnNullLogger()
     {
-      var filter = new ResourceLockFilter(m_config, m_mgr, null);
+      var filter = new ResourceLockFilterAttribute(m_config, m_mgr, null);
     } /* End of Function - ThrowsOnNullLogger */
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
@@ -176,7 +176,7 @@ namespace git_cache.mstest.Filters
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
     /************************ Fields *****************************************/
-    ILogger<ResourceLockFilter> m_logger;
+    ILogger<ResourceLockFilterAttribute> m_logger;
     IGitCacheConfiguration m_config;
     IResourceLockManager<string> m_mgr;
     RouteData m_routeData;

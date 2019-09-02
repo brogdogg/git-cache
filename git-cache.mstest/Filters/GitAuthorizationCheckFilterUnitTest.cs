@@ -1,47 +1,39 @@
 ﻿/******************************************************************************
- * File...: Program.cs
+ * File...: GitAuthorizationCheckFilterUnitTest.cs
  * Remarks: 
  */
-using Microsoft.AspNetCore;
-using Microsoft.AspNetCore.Hosting;
+using git_cache.Filters;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace git_cache
+namespace git_cache.mstest.Filters
 {
-  /************************** Program ****************************************/
+  /************************** GitAuthorizationCheckFilterUnitTest ************/
   /// <summary>
-  /// Main class for the program
+  /// Tests the behavior of <see cref="GitAuthorizationCheckFilter"/>
   /// </summary>
-  public static class Program
+  [TestClass]
+  public class GitAuthorizationCheckFilterUnitTest
   {
-
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
     /************************ Properties *************************************/
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
+    /*----------------------- ThrowsWithNullFactory -------------------------*/
+    /// <summary>
+    /// 
+    /// </summary>
+    [TestMethod]
+    [ExpectedException(typeof(ArgumentNullException))]
+    public void ThrowsWithNullFactory()
+    {
+      var filter = new GitAuthorizationCheckFilterAttribute(null);
+    } /* End of Function - ThrowsWithNullFactory */
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
-    /*----------------------- Main ------------------------------------------*/
-    /// <summary>
-    /// Entry point for the program
-    /// </summary>
-    /// <param name="args">
-    /// Arguments passed to the program
-    /// </param>
-    public static void Main(string[] args)
-    {
-      BuildWebHost(args).Run();
-    } /* End of Function - Main */
-
-    /*----------------------- BuildWebHost ----------------------------------*/
-    /// <summary>
-    /// The function responsible for building the web host
-    /// </summary>
-    /// <param name="args"></param>
-    public static IWebHost BuildWebHost(string[] args) =>
-        WebHost.CreateDefaultBuilder(args)
-            .UseStartup<Startup>()
-            .Build();
 
     /*======================= PROTECTED =====================================*/
     /************************ Events *****************************************/
@@ -59,6 +51,6 @@ namespace git_cache
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
 
-  } /* End of Class - Program */
+  } /* End of Class - GitAuthorizationCheckFilterUnitTest */
 }
-/* End of document - Program.cs */
+/* End of document - GitAuthorizationCheckFilterUnitTest.cs */
