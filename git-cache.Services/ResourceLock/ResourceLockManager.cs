@@ -32,8 +32,7 @@ namespace git_cache.Services.ResourceLock
     public ResourceLockManager(IResourceLockFactory factory)
     {
       if (null == (m_factory = factory))
-        throw new ArgumentNullException("Must provide a valid factory");
-      return;
+        throw new ArgumentNullException(nameof(factory), "Must provide a valid factory");
     } /* End of Function - ResourceLockManager */
     /************************ Methods ****************************************/
 
@@ -129,7 +128,6 @@ namespace git_cache.Services.ResourceLock
           m_resourceLocks = null;
         } // end of if - valid resource dictionary
       } // end of disposing
-      return;
     } /* End of Function - Dispose */
 
     /************************ Fields *****************************************/
@@ -141,10 +139,10 @@ namespace git_cache.Services.ResourceLock
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
     /************************ Fields *****************************************/
-    readonly object m_lock = new object();
-    Dictionary<TKey, IResourceLock> m_resourceLocks
+    private readonly object m_lock = new object();
+    private Dictionary<TKey, IResourceLock> m_resourceLocks
       = new Dictionary<TKey, IResourceLock>();
-    IResourceLockFactory m_factory = null;
+    private readonly IResourceLockFactory m_factory = null;
     /************************ Static *****************************************/
   } /* End of Class - ResourceLockManager */
 }

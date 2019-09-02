@@ -43,9 +43,11 @@ namespace git_cache.Services.Git
     {
       if (null == (Remote = remoteRepo))
         throw new ArgumentNullException(
+          nameof(remoteRepo),
           "Must provide a remote repository object");
       if (null == config)
         throw new ArgumentNullException(
+          nameof(config),
           "Must provide a valid configuration item");
       Path = System.IO.Path.Combine(config.LocalStoragePath,
                                     Remote.Server,

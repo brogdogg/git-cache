@@ -505,3 +505,6 @@ ASALocalRun/
 
 # Ignore the .ENV file
 .env
+
+# Ignore SonarQube folder
+.sonarqube

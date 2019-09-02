@@ -21,7 +21,7 @@ namespace git_cache.Services.ResourceLock
   /// <summary>
   /// Resource lock manager, with the key type specified
   /// </summary>
-  public interface IResourceLockManager<TKey> : IResourceLockManager
+  public interface IResourceLockManager<in TKey> : IResourceLockManager
   {
     /************************ Events *****************************************/
     /************************ Properties *************************************/

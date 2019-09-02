@@ -25,7 +25,6 @@ namespace git_cache.Services.ResourceLock
     public ResourceLock()
       : this(new AutoResetEvent(true))
     {
-      return;
     } /* End of Function - ResourceLock */
 
     /*----------------------- ResourceLock ----------------------------------*/
@@ -38,7 +37,7 @@ namespace git_cache.Services.ResourceLock
     public ResourceLock(AutoResetEvent obj)
     {
       if (null == (m_obj = obj))
-        throw new ArgumentNullException("A valid mutex must be used");
+        throw new ArgumentNullException(nameof(obj), "A valid mutex must be used");
     } /* End of Function - ResourceLock */
 
     /************************ Methods ****************************************/
@@ -64,10 +63,10 @@ namespace git_cache.Services.ResourceLock
     /// <summary>
     /// Waits for the specified amount of time to obtain the lock
     /// </summary>
-    /// <param name="millisecondsTimeout"></param>
-    public bool WaitOne(int millisecondsTimeout)
+    /// <param name="milliseconds"></param>
+    public bool WaitOne(int milliseconds)
     {
-      return m_obj.WaitOne(millisecondsTimeout);
+      return m_obj.WaitOne(milliseconds);
     } /* End of Function - WaitOne */
 
     /*----------------------- WaitOne ---------------------------------------*/
@@ -100,7 +99,6 @@ namespace git_cache.Services.ResourceLock
           m_obj.Dispose();
         m_obj = null;
       } // end of if - valid reset event
-      return;
     } /* End of Function - Dispose */
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
@@ -111,7 +109,7 @@ namespace git_cache.Services.ResourceLock
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
     /************************ Fields *****************************************/
-    AutoResetEvent m_obj = null;
+    private AutoResetEvent m_obj = null;
     /************************ Static *****************************************/
 
   } /* End of Class - ResourceLock */

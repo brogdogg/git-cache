@@ -26,7 +26,8 @@ namespace git_cache.Controllers
   /// </summary>
   [Produces("application/json")]
   [Route("api/Git")]
-  [TypeFilter(typeof(ResourceLockFilter))]
+  [TypeFilter(typeof(GitAuthorizationCheckFilterAttribute))]
+  [TypeFilter(typeof(ResourceLockFilterAttribute))]
   public class GitController : Controller
   {
     /*======================= PUBLIC ========================================*/
@@ -63,39 +64,14 @@ namespace git_cache.Controllers
       : base()
     {
       if (null == (GitContext = gitContext))
-        throw new ArgumentNullException("A valid git context must be provided");
+        throw new ArgumentNullException(nameof(gitContext), "A valid git context must be provided");
       if (null == (Shell = shell))
-        throw new ArgumentNullException("A valid shell object must be provided");
+        throw new ArgumentNullException(nameof(shell), "A valid shell object must be provided");
       if (null == (Logger = logger))
-        throw new ArgumentNullException("A valid logger must be provided");
+        throw new ArgumentNullException(nameof(logger), "A valid logger must be provided");
     } // end of function - GitController
 
     /************************ Methods ****************************************/
-    [HttpGet("{destinationServer}/{repositoryOwner}/{repository}/fetch")]
-    public async Task<ActionResult> FetchAsync(
-      string destinationServer,
-      string repositoryOwner,
-      string repository,
-      [FromQuery]string service,
-      [FromHeader]string authorization)
-    {
-      ActionResult retval = null;
-      var repo = GitContext.RemoteFactory.Build(destinationServer,
-        repositoryOwner,
-        repository,
-        authorization);
-
-      // Verify the authorization is OK, if not then return the error response
-      // from the actual git server
-      if (null != (retval = await CheckAuthorizationAsync(repo)))
-        return retval;
-      // Create a local repository based on the remote repo
-      var local = GitContext.LocalFactory.Build(repo, GitContext.Configuration);
-      retval = new JsonResult(Shell.Execute($"git -C \"{local.Path}\" log -2 --pretty=%h"));
-      return retval;
-
-    }
-    // GET: api/Git/{server}/{repoOwner}/{repo}/info/refs?service={service}
     /// <summary>
     /// HTTP GET handler for fetch/clones from git
     /// </summary>
@@ -121,13 +97,6 @@ namespace git_cache.Controllers
         repository,
         authorization);
 
-      // Verify the authorization is OK, if not then return the error response
-      // from the actual git server
-      if (null != (retval = await CheckAuthorizationAsync(repo)))
-      {
-        Logger.LogInformation("Authorization required, can't continue");
-        return retval;
-      }
       // Create a local repository based on the remote repo
       var local = GitContext.LocalFactory.Build(repo, GitContext.Configuration);
       // Updates our local cache, if it has never been downloaded then it
@@ -152,7 +121,7 @@ namespace git_cache.Controllers
     /// <param name="contentEncoding"></param>
     /// <returns></returns>
     [HttpPost("{destinationServer}/{repositoryOwner}/{repository}/{service}", Name = "Post")]
-    public async Task<ActionResult> PostUploadPack(
+    public ActionResult PostUploadPack(
       string destinationServer,
       string repositoryOwner,
       string repository,
@@ -160,13 +129,11 @@ namespace git_cache.Controllers
       [FromHeader]string authorization,
       [FromHeader(Name = "content-encoding")]string contentEncoding)
     {
-      ActionResult retval = new OkResult();
+      ActionResult retval = null;
       var repo = GitContext.RemoteFactory.Build(destinationServer,
         repositoryOwner,
         repository,
         authorization);
-      if (null != (retval = await CheckAuthorizationAsync(repo)))
-        return retval;
       var local = GitContext.LocalFactory.Build(repo, GitContext.Configuration);
       retval = new ServiceResult(service,
                                  local,
@@ -202,7 +169,7 @@ namespace git_cache.Controllers
     /// For more details, see https://github.com/git-lfs/git-lfs/blob/master/docs/api/batch.md
     /// </remarks>
     [HttpPost("{destinationServer}/{repositoryOwner}/{repository}/info/lfs/objects/batch")]
-    public async Task<ActionResult> LFSBatchPost(
+    public ActionResult LFSBatchPost(
       string destinationServer,
       string repositoryOwner,
       string repository,
@@ -212,7 +179,7 @@ namespace git_cache.Controllers
       // Create a reference to the local cached repository
       var local = GetLocalRepo(destinationServer, repositoryOwner, repository, authorization);
       // And then return a JSON result for the LFS objects requested
-      return new JsonResult(await CreateBatchLFSResponse(local, value));
+      return new JsonResult(CreateBatchLFSResponse(local, value));
     } // end of function - LFSBatchPost
 
     /// <summary>
@@ -229,13 +196,13 @@ namespace git_cache.Controllers
     /// Task generating a <see cref="BatchResponseObject"/>, with information to
     /// send to the client
     /// </returns>
-    public async Task<BatchResponseObject> CreateBatchLFSResponse(ILocalRepository repo, BatchRequestObject reqObj)
+    public BatchResponseObject CreateBatchLFSResponse(ILocalRepository repo, BatchRequestObject reqObj)
     {
       // Create our main response object
       BatchResponseObject retval = new BatchResponseObject();
 
       // Loop through all of the objects in the request object
-      foreach(var obj in reqObj.Objects)
+      foreach (var obj in reqObj.Objects)
       {
         // We will need a list of actions to return
         LFSActions actions = new LFSActions();
@@ -247,20 +214,20 @@ namespace git_cache.Controllers
 
         // Right now, we only support a "download" action, so build it out
         actions.Download = new LFSActions.DownloadAction()
-          {
-            ExpiresAt = null,
-            ExpiresIn = 0,
-            HREF = $"{baseUrl}/{repo.Remote.Server}/{repo.Remote.Owner}/{repo.Remote.Name}/lfs/download/{obj.OID}"
-          };
+        {
+          ExpiresAt = null,
+          ExpiresIn = 0,
+          HREF = $"{baseUrl}/{repo.Remote.Server}/{repo.Remote.Owner}/{repo.Remote.Name}/lfs/download/{obj.OID}"
+        };
 
         retval.Objects.Add(new BatchResponseObject.ResponseLFSItem()
-          {
-            Authenticated = true,
-            OID = obj.OID,
-            Size = (int)fileInfo.Length,
-            Actions = actions,
-            Error = null
-          });
+        {
+          Authenticated = true,
+          OID = obj.OID,
+          Size = (int)fileInfo.Length,
+          Actions = actions,
+          Error = null
+        });
       } // end of foreach - object in the LFS request objects call
       return retval;
     } // end of function - CreateBatchLFSResponse
@@ -383,56 +350,6 @@ namespace git_cache.Controllers
     /************************ Properties *************************************/
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
-
-    /// <summary>
-    /// Authenticates asynchronously
-    /// </summary>
-    /// <param name="repo">
-    /// The remote repository to authenticate against
-    /// </param>
-    /// <returns>
-    /// Task for getting the HTTP Response from the authentication request
-    /// </returns>
-    private async Task<HttpResponseMessage> AuthenticateAsync(IRemoteRepository repo)
-    {
-      // Create a HTTP client to work with
-      HttpClient client = new HttpClient();
-      // Clear out the headers and setup our own
-      client.DefaultRequestHeaders.Accept.Clear();
-      // Attach the authentication if we have it
-      if (null != repo.Auth)
-        client.DefaultRequestHeaders.Authorization
-          = new AuthenticationHeaderValue(repo.Auth.Scheme,
-                                          repo.Auth.Encoded);
-      // Pretend we are a git client
-      client.DefaultRequestHeaders.UserAgent.Add(
-        new ProductInfoHeaderValue("git", "1.0"));
-      // Finally go ahead and authenticate against the info/refs url
-      string url = $"{repo.Url}/info/refs?service=git-upload-pack";
-      return await client.GetAsync(url);
-    } // end of function - AuthenticateAsync
-
-    /// <summary>
-    /// Checks the authorization against the remote repository
-    /// </summary>
-    /// <param name="repo">
-    /// Remote repository to work with
-    /// </param>
-    /// <returns>
-    /// The forwarded result task
-    /// </returns>
-    private async Task<ActionResult> CheckAuthorizationAsync(IRemoteRepository repo)
-    {
-      ActionResult retval = null;
-      // Authenticate the repository
-      var resp = await AuthenticateAsync(repo);
-      // If we were not successful, then we will forward the result back to the
-      // user
-      if (System.Net.HttpStatusCode.OK != resp.StatusCode)
-        retval = new ForwardedResult(resp);
-      return retval;
-    } // end of function - CheckAuthorizationAsync
-
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
 

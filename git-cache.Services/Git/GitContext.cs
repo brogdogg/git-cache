@@ -69,15 +69,15 @@ namespace git_cache.Services.Git
       IGitLFSExecuter lfsExec)
     {
       if (null == (Configuration = gitCacheConfiguration))
-        throw new ArgumentNullException("Missing git-cache configuration");
+        throw new ArgumentNullException(nameof(gitCacheConfiguration), "Missing git-cache configuration");
       if (null == (LocalFactory = localFactory))
-        throw new ArgumentNullException("Missing required local repository factory");
+        throw new ArgumentNullException(nameof(localFactory), "Missing required local repository factory");
       if (null == (RemoteFactory = remoteFactory))
-        throw new ArgumentNullException("Remote repository factory must be valid");
+        throw new ArgumentNullException(nameof(remoteFactory),"Remote repository factory must be valid");
       if (null == (GitExecuter = gitExec))
-        throw new ArgumentNullException("Git executor must be valid");
+        throw new ArgumentNullException(nameof(gitExec), "Git executor must be valid");
       if (null == (LFSExecuter = lfsExec))
-        throw new ArgumentNullException("LFS executor must be valid");
+        throw new ArgumentNullException(nameof(lfsExec), "LFS executor must be valid");
     } /* End of Function - GitContext */
     /************************ Methods ****************************************/
     /*----------------------- UpdateLocalAsync ------------------------------*/

@@ -1,49 +1,37 @@
 ﻿/******************************************************************************
- * File...: ForwardedResult.cs
+ * File...: GitAuthorizationCheckFilterUnitTest.cs
  * Remarks: 
  */
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Primitives;
-using System.Linq;
-using System.Net.Http;
+using git_cache.Filters;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace git_cache.Results
+namespace git_cache.mstest.Filters
 {
-  /************************** ForwardedResult ********************************/
+  /************************** GitAuthorizationCheckFilterUnitTest ************/
   /// <summary>
-  /// Forwarded result class, extending the <see cref="ActionResult"/>
+  /// Tests the behavior of <see cref="GitAuthorizationCheckFilter"/>
   /// </summary>
-  public class ForwardedResult : ActionResult
+  [TestClass]
+  public class GitAuthorizationCheckFilterUnitTest
   {
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
     /************************ Properties *************************************/
     /************************ Construction ***********************************/
-    /*----------------------- ForwardedResult -------------------------------*/
-    /// <summary>
-    /// Constructor for the forwarded results
-    /// </summary>
-    /// <param name="baseResult"></param>
-    public ForwardedResult(HttpResponseMessage baseResult)
-    {
-      BaseResponse = baseResult;
-    } /* End of Function - ForwardedResult */
     /************************ Methods ****************************************/
-
-    /*----------------------- ExecuteResult ---------------------------------*/
+    /*----------------------- ThrowsWithNullFactory -------------------------*/
     /// <summary>
-    /// Executes the result
+    /// 
     /// </summary>
-    /// <param name="context"></param>
-    public override void ExecuteResult(ActionContext context)
+    [TestMethod]
+    [ExpectedException(typeof(ArgumentNullException))]
+    public void ThrowsWithNullFactory()
     {
-      var response = context.HttpContext.Response;
-      response.StatusCode = (int)BaseResponse.StatusCode;
-      foreach (var header in BaseResponse.Headers)
-        response.Headers.Add(
-          header.Key,
-          new StringValues(header.Value.ToArray()));
-    } /* End of Function - ExecuteResult */
+      var filter = new GitAuthorizationCheckFilterAttribute(null);
+    } /* End of Function - ThrowsWithNullFactory */
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
 
@@ -58,16 +46,11 @@ namespace git_cache.Results
     /*======================= PRIVATE =======================================*/
     /************************ Events *****************************************/
     /************************ Properties *************************************/
-    /************************ BaseResponse ***********************************/
-    /// <summary>
-    /// Gets the base response
-    /// </summary>
-    private HttpResponseMessage BaseResponse { get; } /* End of Property - BaseResponse */
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
 
-  } /* End of Class - ForwardedResult */
+  } /* End of Class - GitAuthorizationCheckFilterUnitTest */
 }
-/* End of document - ForwardedResult.cs */
+/* End of document - GitAuthorizationCheckFilterUnitTest.cs */
