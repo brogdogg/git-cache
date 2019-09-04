@@ -56,8 +56,8 @@ namespace git_cache.Filters
       var headers = context.HttpContext.Request.Headers;
       // If so, then we will get the value to use (assuming the first is
       // good enough, since there should just be one)
-      if(headers.ContainsKey("Authentication"))
-        auth = headers["Authentication"].First();
+      if(headers.ContainsKey("Authorization"))
+        auth = headers["Authorization"].First();
       // And we will need our repository object for checking
       var repo = m_factory.Build(
                       context.RouteData.Values["destinationServer"].ToString(),
