@@ -15,12 +15,14 @@ using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using System;
+using System.Collections.Generic;
 
 namespace git_cache.mstest.Filters
 {
   /* ReaderWriterLockFilterAttributeUnitTest *********************************/
   /// <summary>
-  /// 
+  /// Unit tests for the <see cref="ReaderWriterLockFilterAsyncAttribute"/>
+  /// class.
   /// </summary>
   [TestClass]
   public class ReaderWriterLockFilterAttributeUnitTest
@@ -32,8 +34,9 @@ namespace git_cache.mstest.Filters
     /* Methods ***************************************************************/
     /* Initialize -----------------------------------------------------------*/
     /// <summary>
-    /// 
+    /// Initializer for the test cases
     /// </summary>
+    [TestInitialize]
     public void Initialize()
     {
       m_logger = Substitute.For<ILogger<ReaderWriterLockFilterAsyncAttribute>>();
@@ -64,7 +67,8 @@ namespace git_cache.mstest.Filters
 
     /* ThrowsForInvalidLockManager ------------------------------------------*/
     /// <summary>
-    /// 
+    /// Verifies the constructor throws when the
+    /// <see cref="ReaderWriterLockManager{TKey}"/> is null.
     /// </summary>
     [TestMethod]
     [ExpectedException(typeof(ArgumentNullException))]
@@ -75,7 +79,8 @@ namespace git_cache.mstest.Filters
 
     /* ThrowsForInvalidLogger -----------------------------------------------*/
     /// <summary>
-    /// 
+    /// Verifies the constructor throws when the
+    /// <see cref="ILogger{TCategoryName}"/> is null.
     /// </summary>
     [TestMethod]
     [ExpectedException(typeof(ArgumentNullException))]
@@ -86,7 +91,8 @@ namespace git_cache.mstest.Filters
 
     /* ThrowsForInvalidConfig -----------------------------------------------*/
     /// <summary>
-    /// 
+    /// Verifies the constructor throws when
+    /// <see cref="IGitCacheConfiguration"/> is null.
     /// </summary>
     [TestMethod]
     [ExpectedException(typeof(ArgumentNullException))]
@@ -94,6 +100,50 @@ namespace git_cache.mstest.Filters
     {
       var lockO = new ReaderWriterLockFilterAsyncAttribute(m_mgr, m_logger, null);
     } /* End of Function - ThrowsForInvalidConfig */
+
+    [TestMethod]
+    [ExpectedException(typeof(ArgumentNullException))]
+    public void ThrowsOnExecutionWithInvalidContext()
+    {
+      var lockObj = new ReaderWriterLockFilterAsyncAttribute(m_mgr, m_logger, m_config);
+      lockObj.OnResourceExecutionAsync(null, Substitute.For<ResourceExecutionDelegate>()).Wait();
+    }
+
+    [TestMethod]
+    [ExpectedException(typeof(ArgumentNullException))]
+    public void ThrowsOnExecutionWithInvalidNext()
+    {
+      var filters = Substitute.For<IList<IFilterMetadata>>();
+      ResourceExecutingContext exingContext =
+        new ResourceExecutingContext(
+          m_actionContext,
+          filters,
+          Substitute.For<IList<IValueProviderFactory>>());
+      var lockObj = new ReaderWriterLockFilterAsyncAttribute(m_mgr, m_logger, m_config);
+      lockObj.OnResourceExecutionAsync(exingContext, null).Wait();
+    }
+
+    [TestMethod]
+    public void InvalidRouteDataProvided()
+    {
+      var filters = Substitute.For<IList<IFilterMetadata>>();
+
+      var actionContext = new ActionContext(
+            new DefaultHttpContext(),
+            m_routeData,
+            new ActionDescriptor(),
+            new ModelStateDictionary());
+
+      ResourceExecutingContext exingContext =
+        new ResourceExecutingContext(
+          actionContext,
+          filters,
+          Substitute.For<IList<IValueProviderFactory>>());
+
+      var lockObj = new ReaderWriterLockFilterAsyncAttribute(m_mgr, m_logger, m_config);
+      var execDel = Substitute.For<ResourceExecutionDelegate>();
+      lockObj.OnResourceExecutionAsync(exingContext, execDel).Wait();
+    }
     /* Fields ****************************************************************/
     /* Static ****************************************************************/
 

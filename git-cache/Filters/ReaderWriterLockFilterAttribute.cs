@@ -7,8 +7,6 @@ using git_cache.Services.ResourceLock;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -39,66 +37,93 @@ namespace git_cache.Filters
       if (null == (Manager = lockManager))
         throw new ArgumentNullException(
           nameof(lockManager), "Lock manager must be a valid value");
-      if(null == (Logger = logger))
+      if (null == (Logger = logger))
         throw new ArgumentNullException(
           nameof(logger), "Logger must be a valid value");
-      if(null == (Configuration = config))
+      if (null == (Configuration = config))
         throw new ArgumentNullException(
           nameof(config), "Configuration must be a valid value");
     } /* End of Function - ReaderWriterLockFilterAsyncAttribute */
     /************************ Methods ****************************************/
     /*----------------------- OnResourceExecutionAsync ----------------------*/
     /// <summary>
-    /// 
+    /// Wraps the execution with a lock, if out of date will get a writer lock
+    /// otherwise will continue through as a reader
     /// </summary>
     /// <param name="context"></param>
     /// <param name="next"></param>
-    public async Task OnResourceExecutionAsync(
+    /// <remarks>
+    /// This method does not use the async keyword, due to `await` to possibly
+    /// change the thread we are executing on, causing problems with the locks.
+    /// </remarks>
+    public Task OnResourceExecutionAsync(
       ResourceExecutingContext context,
       ResourceExecutionDelegate next)
     {
-      Logger.LogTrace("ResourceExecuting for reader/writer lock");
-      // Grab the timeout value from configuration
-      var timeout = GetWaitTimeSpan();
-      Logger.LogTrace($"Got a timeout from configuration: {timeout}");
-      LockCookie lockCookie = default(LockCookie);
-      // Get a lock object associated with the resource key
-      Lock = Manager.GetFor(GetResourceKey(context));
-      // Become a reader first, since we will always want to be
-      // a reader
-      Logger.LogTrace("Acquiring reader lock for resource");
-      Lock.AcquireReaderLock(timeout);
-      try
-      {
-        // Check to see if we are out of date, if we are then
-        // upgrade to writer, to update our local values
-        if (!IsRepositoryUpToDate(context))
-        {
-          Logger.LogTrace("Local resources is out of date, upgrading to a writer lock");
-          lockCookie = Lock.UpgradeToWriterLock(timeout);
-        }
+      if(null == context)
+        throw new ArgumentNullException(
+          nameof(context), "A valid context must be provided");
 
-        Logger.LogTrace("Calling through to the next step in the pipeline");
-        // Allow the rest of the pipeline to continue
-        await next();
-        Logger.LogTrace("Got control again.");
+      if (null == next)
+        throw new ArgumentNullException(
+          nameof(next), "A valid execution delegate must be provided");
 
-        // If we were holding the writer lock, release it
-        // first
-        if (Lock.IsWriterLockHeld)
+      return Task.Factory.StartNew(() =>
         {
-          Logger.LogTrace("Releasing the writer lock");
-          Lock.ReleaseWriterLock();
-          Logger.LogTrace("Writer lock reelased");
-        } // end of if - writer lock is held
-      } // end of try - 
-      finally
-      {
-        Logger.LogTrace("Releasing the lock");
-        Lock.ReleaseLock();
-      } // end of finally
-      Lock = null;
-      return;
+          Logger.LogTrace("Enter main execution task");
+          // Grab the timeout value from configuration
+          var timeout = GetWaitTimeSpan();
+          Logger.LogInformation($"Got a timeout from configuration: {timeout}");
+          LockCookie lockCookie = default(LockCookie);
+          // Get a lock object associated with the resource key
+          var lockObj = Manager.GetFor(GetResourceKey(context));
+
+          if (!IsRepositoryUpToDate(context))
+          {
+            Logger.LogInformation("Repository out of date, asking for writer lock");
+            lockObj.AcquireWriterLock(timeout);
+          } // end of if - out-of-date
+          else
+          {
+            Logger.LogInformation("Repository is up to date, asking for reader lock");
+            lockObj.AcquireReaderLock(timeout);
+          } // end of else - up-to-date
+
+          try
+          {
+            // Check to see if we are out of date, if we are then
+            // upgrade to writer, to update our local values
+            if (IsRepositoryUpToDate(context))
+            {
+              Logger.LogInformation("Repository updated since we asked, downgrading to reader lock");
+              lockObj.DowngradeFromWriterLock(ref lockCookie);
+            } // end of if - repository is up-to-date
+
+            Logger.LogInformation("Calling through to the next step in the pipeline");
+            // Allow the rest of the pipeline to continue
+            next().Wait();
+
+            Logger.LogInformation("Next action has finished, continue to release locks");
+          } // end of try - to execute the job
+          finally
+          {
+            // If we were holding the writer lock, release it
+            // first
+            if (lockObj.IsWriterLockHeld)
+            {
+              Logger.LogInformation("Releasing the writer lock");
+              lockObj.ReleaseWriterLock();
+              Logger.LogInformation("Writer lock released");
+            } // end of if - writer lock is held
+            else
+            {
+              Logger.LogInformation("Releasing the reader lock");
+              lockObj.ReleaseReaderLock();
+            } // end of else - reader lock
+          } // end of finally
+          lockObj = null;
+          Logger.LogTrace("Exit main execution task");
+        }); // end of task
     } /* End of Function - OnResourceExecutionAsync */
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
@@ -106,9 +131,17 @@ namespace git_cache.Filters
     /*======================= PROTECTED =====================================*/
     /************************ Events *****************************************/
     /************************ Properties *************************************/
+    /// <summary>
+    /// Gets the configuration
+    /// </summary>
     protected IGitCacheConfiguration Configuration { get; }
-    protected IReaderWriterLock Lock { get; set; }
+    /// <summary>
+    /// Gets the logger associated with this instance
+    /// </summary>
     protected ILogger Logger { get; }
+    /// <summary>
+    /// Gets the reader/writer lock manager for getting locks for resources
+    /// </summary>
     protected IReaderWriterLockManager<string> Manager { get; }
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
@@ -126,7 +159,7 @@ namespace git_cache.Filters
         context.RouteData.Values["destinationServer"],
         context.RouteData.Values["repositoryOwner"],
         context.RouteData.Values["repository"]);
-      Logger?.Log(LogLevel.Information, $"Generated resource key: {key}");
+      Logger.LogInformation($"Generated resource key: {key}");
       return key;
     } /* End of Function - GetResourceKey */
     /*----------------------- GetWaitTimeSpan -------------------------------*/
@@ -137,7 +170,7 @@ namespace git_cache.Filters
     protected virtual TimeSpan GetWaitTimeSpan()
     {
       var waitTime = TimeSpan.FromMilliseconds(Configuration.OperationTimeout);
-      Logger.Log(LogLevel.Information, $"Wait time span: {waitTime}");
+      Logger.LogInformation($"Wait time span: {waitTime}");
       return waitTime;
     } /* End of Function - GetWaitTimeSpan */
 
