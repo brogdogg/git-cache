@@ -57,31 +57,44 @@ namespace git_cache.Filters
       ResourceExecutingContext context,
       ResourceExecutionDelegate next)
     {
+      Logger.LogTrace("ResourceExecuting for reader/writer lock");
       // Grab the timeout value from configuration
       var timeout = GetWaitTimeSpan();
+      Logger.LogTrace($"Got a timeout from configuration: {timeout}");
       LockCookie lockCookie = default(LockCookie);
       // Get a lock object associated with the resource key
       Lock = Manager.GetFor(GetResourceKey(context));
       // Become a reader first, since we will always want to be
       // a reader
+      Logger.LogTrace("Acquiring reader lock for resource");
       Lock.AcquireReaderLock(timeout);
       try
       {
         // Check to see if we are out of date, if we are then
         // upgrade to writer, to update our local values
         if (!IsRepositoryUpToDate(context))
+        {
+          Logger.LogTrace("Local resources is out of date, upgrading to a writer lock");
           lockCookie = Lock.UpgradeToWriterLock(timeout);
+        }
 
+        Logger.LogTrace("Calling through to the next step in the pipeline");
         // Allow the rest of the pipeline to continue
         await next();
+        Logger.LogTrace("Got control again.");
 
         // If we were holding the writer lock, release it
         // first
         if (Lock.IsWriterLockHeld)
+        {
+          Logger.LogTrace("Releasing the writer lock");
           Lock.ReleaseWriterLock();
+          Logger.LogTrace("Writer lock reelased");
+        } // end of if - writer lock is held
       } // end of try - 
       finally
       {
+        Logger.LogTrace("Releasing the lock");
         Lock.ReleaseLock();
       } // end of finally
       Lock = null;
