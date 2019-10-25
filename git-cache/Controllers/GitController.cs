@@ -5,14 +5,10 @@
 using git_cache.Services.Git;
 using git_cache.Services.Git.LFS;
 using git_cache.Services.Git.Results;
-using git_cache.Results;
 using git_cache.Services.Shell;
 using Microsoft.AspNetCore.Mvc;
 using System;
-using System.Diagnostics;
 using System.IO;
-using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using git_cache.Filters;
@@ -27,7 +23,8 @@ namespace git_cache.Controllers
   [Produces("application/json")]
   [Route("api/Git")]
   [TypeFilter(typeof(GitAuthorizationCheckFilterAttribute))]
-  [TypeFilter(typeof(ResourceLockFilterAttribute))]
+  //[TypeFilter(typeof(ResourceLockFilterAttribute))]
+  [TypeFilter(typeof(ReaderWriterLockFilterAsyncAttribute))]
   public class GitController : Controller
   {
     /*======================= PUBLIC ========================================*/
