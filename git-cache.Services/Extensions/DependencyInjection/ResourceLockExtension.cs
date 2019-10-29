@@ -40,7 +40,7 @@ namespace git_cache.Services.Extensions.DependencyInjection
 
       // Add the reader/writer lock classes to the services
       services.AddSingleton(typeof(IReaderWriterLockFactory<>), typeof(ReaderWriterLockFactory<>))
-              .AddSingleton<IReaderWriterLockFactory, ReaderWriterLockFactory<Services.ResourceLock.ReaderWriterLock>>()
+              .AddSingleton<IReaderWriterLockFactory, ReaderWriterLockFactory<Services.ResourceLock.ReaderWriterLockSlim>>()
               .AddSingleton(typeof(IReaderWriterLockManager<>), typeof(ReaderWriterLockManager<>));
 
       return services;
