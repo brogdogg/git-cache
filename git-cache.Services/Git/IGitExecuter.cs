@@ -21,8 +21,8 @@ namespace git_cache.Services.Git
     /************************ Methods ****************************************/
     string Clone(ILocalRepository local);
     Task<string> CloneAsync(ILocalRepository local);
-    string Fetch(ILocalRepository local);
-    Task<string> FetchAsync(ILocalRepository local);
+    string Fetch(ILocalRepository local, bool doDryRun=false);
+    Task<string> FetchAsync(ILocalRepository local, bool doDryRun=false);
   } /* End of Interface - IGitExecuter */
 
   /************************** IGitLFSExecuter ********************************/

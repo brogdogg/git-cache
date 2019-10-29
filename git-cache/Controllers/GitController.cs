@@ -23,7 +23,6 @@ namespace git_cache.Controllers
   [Produces("application/json")]
   [Route("api/Git")]
   [TypeFilter(typeof(GitAuthorizationCheckFilterAttribute))]
-  //[TypeFilter(typeof(ResourceLockFilterAttribute))]
   [TypeFilter(typeof(ReaderWriterLockFilterAsyncAttribute))]
   public class GitController : Controller
   {
@@ -96,10 +95,6 @@ namespace git_cache.Controllers
 
       // Create a local repository based on the remote repo
       var local = GitContext.LocalFactory.Build(repo, GitContext.Configuration);
-      // Updates our local cache, if it has never been downloaded then it
-      // will be cloned, otherwise just a fetch is performed to update
-      // the local copy
-      await GitContext.UpdateLocalAsync(local);
       // Then create a custom git service advertisement result to send
       // back to the client, basically forwarding everything we just
       // updated to the client now

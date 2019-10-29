@@ -3,10 +3,13 @@
  * Remarks: 
  */
 using git_cache.Services.Configuration;
+using git_cache.Services.Git;
+using git_cache.Services.Git.Status;
 using git_cache.Services.ResourceLock;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,7 +17,7 @@ namespace git_cache.Filters
 {
   /************************** ReaderWriterLockFilterAsyncAttribute ***********/
   /// <summary>
-  /// 
+  /// Reader/writer lock filter, to assign to a controller
   /// </summary>
   public class ReaderWriterLockFilterAsyncAttribute : Attribute, IAsyncResourceFilter
   {
@@ -24,15 +27,33 @@ namespace git_cache.Filters
     /************************ Construction ***********************************/
     /*----------------------- ReaderWriterLockFilterAsyncAttribute ----------*/
     /// <summary>
-    /// 
+    /// Constructor
     /// </summary>
-    /// <param name="lockManager"></param>
-    /// <param name="logger"></param>
-    /// <param name="config"></param>
+    /// <param name="config">
+    /// Git configuration object
+    /// </param>
+    /// <param name="gitContext">
+    /// Git context object
+    /// </param>
+    /// <param name="lockManager">
+    /// Lock manager
+    /// </param>
+    /// <param name="logger">
+    /// Logger for the object
+    /// </param>
+    /// <param name="remoteRepoFactory">
+    /// Remote repository factory, is this needed since it is in the git context?
+    /// </param>
+    /// <param name="remoteStatusSvc">
+    /// Service for getting the reference status
+    /// </param>
     public ReaderWriterLockFilterAsyncAttribute(
       IReaderWriterLockManager<string> lockManager,
       ILogger<ReaderWriterLockFilterAsyncAttribute> logger,
-      IGitCacheConfiguration config)
+      IGitCacheConfiguration config,
+      IRemoteStatus remoteStatusSvc,
+      IRemoteRepositoryFactory remoteRepoFactory,
+      IGitContext gitContext)
     {
       if (null == (Manager = lockManager))
         throw new ArgumentNullException(
@@ -43,6 +64,15 @@ namespace git_cache.Filters
       if (null == (Configuration = config))
         throw new ArgumentNullException(
           nameof(config), "Configuration must be a valid value");
+      if(null == (RemoteStatusService = remoteStatusSvc))
+        throw new ArgumentNullException(
+          nameof(remoteStatusSvc), "Remote status service must be a valid value");
+      if(null == (RemoteRepoFactory = remoteRepoFactory))
+        throw new ArgumentNullException(
+          nameof(remoteRepoFactory), "Remote repository factory must be a valid value");
+      if(null == (GitContext = gitContext))
+        throw new ArgumentNullException(
+          nameof(gitContext), "A valid git context must be provided");
     } /* End of Function - ReaderWriterLockFilterAsyncAttribute */
     /************************ Methods ****************************************/
     /*----------------------- OnResourceExecutionAsync ----------------------*/
@@ -78,24 +108,43 @@ namespace git_cache.Filters
           // Get a lock object associated with the resource key
           var lockObj = Manager.GetFor(GetResourceKey(context));
 
-          if (!IsRepositoryUpToDate(context))
+          string auth = null;
+          // Will look in the headers for an "Authentication" record
+          var headers = context.HttpContext.Request.Headers;
+          // If so, then we will get the value to use (assuming the first is
+          // good enough, since there should just be one)
+          if(headers.ContainsKey("Authorization"))
+            auth = headers["Authorization"].First();
+
+          var repo = GitContext.RemoteFactory.Build(context.RouteData.Values["destinationServer"].ToString(),
+                                                    context.RouteData.Values["repositoryOwner"].ToString(),
+                                                    context.RouteData.Values["repository"].ToString(),
+                                                    auth);
+          var local = GitContext.LocalFactory.Build(repo, Configuration);
+
+          Logger.LogInformation("Grabbing reader lock");
+          lockObj.AcquireReaderLock(timeout);
+          if (!IsRepositoryUpToDate(local))
           {
             Logger.LogInformation("Repository out of date, asking for writer lock");
-            lockObj.AcquireWriterLock(timeout);
+            //lockObj.AcquireWriterLock(timeout);
+            lockCookie = lockObj.UpgradeToWriterLock(timeout);
           } // end of if - out-of-date
-          else
-          {
-            Logger.LogInformation("Repository is up to date, asking for reader lock");
-            lockObj.AcquireReaderLock(timeout);
-          } // end of else - up-to-date
 
           try
           {
             // Check to see if we are out of date, if we are then
             // upgrade to writer, to update our local values
-            if (IsRepositoryUpToDate(context))
+            if (lockObj.IsWriterLockHeld)
             {
-              Logger.LogInformation("Repository updated since we asked, downgrading to reader lock");
+              // If still out of date, then we will update the local one,
+              // because we are the instance stuck with the work
+              if (!IsRepositoryUpToDate(local))
+              {
+                Logger.LogInformation("We are responsible for updating the local repository");
+                GitContext.UpdateLocalAsync(local).Wait();
+                Logger.LogInformation("Local repository updated!");
+              }
               lockObj.DowngradeFromWriterLock(ref lockCookie);
             } // end of if - repository is up-to-date
 
@@ -143,6 +192,20 @@ namespace git_cache.Filters
     /// Gets the reader/writer lock manager for getting locks for resources
     /// </summary>
     protected IReaderWriterLockManager<string> Manager { get; }
+    /// <summary>
+    /// Gets the <see cref="IRemoteStatus"/> object, for checking the status
+    /// of branches
+    /// </summary>
+    protected IRemoteStatus RemoteStatusService { get; }
+    /// <summary>
+    /// Gets the <see cref="IRemoteRepositoryFactory"/> object, used to
+    /// build <see cref="IRemoteRepository"/> objects
+    /// </summary>
+    protected IRemoteRepositoryFactory RemoteRepoFactory { get; }
+    /// <summary>
+    /// Gets the <see cref="IGitContext"/> object
+    /// </summary>
+    protected IGitContext GitContext { get; }
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
     /************************ Fields *****************************************/
@@ -176,15 +239,37 @@ namespace git_cache.Filters
 
     /*----------------------- IsRepositoryUpToDate --------------------------*/
     /// <summary>
-    /// 
+    /// Checks to see if the repository is considered out of date
     /// </summary>
     /// <param name="context">
     /// Context object to get repository information from
     /// </param>
     protected virtual bool IsRepositoryUpToDate(
-      ResourceExecutingContext context)
+      ILocalRepository localRepository)
     {
-      return false;
+      if (System.IO.Directory.Exists(localRepository.Path))
+      {
+        var status = RemoteStatusService.GetAsync(localRepository).Result;
+
+        var outOfDateItems = status?.Where(v =>
+        {
+          switch (v.Flag)
+          {
+            case RefStatus.State.FailedOrRejected:
+            case RefStatus.State.ForcedUpdated:
+            case RefStatus.State.New:
+            case RefStatus.State.Pruned:
+            case RefStatus.State.TagUpdated:
+            case RefStatus.State.Updated:
+              return true;
+            default:
+            case RefStatus.State.UpToDate:
+              return false;
+          }
+        }).ToList();
+        return outOfDateItems.Count == 0;
+      }
+      else { return false; }
     } /* End of Function - IsRepositoryUpToDate */
     /************************ Static *****************************************/
 
