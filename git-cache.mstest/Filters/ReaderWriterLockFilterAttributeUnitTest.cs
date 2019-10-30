@@ -46,7 +46,6 @@ namespace git_cache.mstest.Filters
       m_mgr = Substitute.For<IReaderWriterLockManager<string>>();
       m_lock = Substitute.For<IReaderWriterLock>();
       m_gitContext = Substitute.For<IGitContext>();
-      m_remoteFactory = Substitute.For<IRemoteRepositoryFactory>();
       m_remoteStatus = Substitute.For<IRemoteStatus>();
 
       m_mgr.GetFor($"{m_testServer}_{m_owner}_{m_repo}")
@@ -80,7 +79,7 @@ namespace git_cache.mstest.Filters
     public void ThrowsForInvalidLockManager()
     {
       var lockObj = new ReaderWriterLockFilterAsyncAttribute(null, m_logger, m_config,
-        m_remoteStatus, m_remoteFactory, m_gitContext);
+        m_remoteStatus, m_gitContext);
     } /* End of Function - ThrowsForInvalidLockManager */
 
     /* ThrowsForInvalidLogger -----------------------------------------------*/
@@ -93,7 +92,7 @@ namespace git_cache.mstest.Filters
     public void ThrowsForInvalidLogger()
     {
       var lockObj = new ReaderWriterLockFilterAsyncAttribute(m_mgr, null, m_config,
-        m_remoteStatus, m_remoteFactory, m_gitContext);
+        m_remoteStatus, m_gitContext);
     } /* End of Function - ThrowsForInvalidLogger */
 
     /* ThrowsForInvalidConfig -----------------------------------------------*/
@@ -106,7 +105,7 @@ namespace git_cache.mstest.Filters
     public void ThrowsForInvalidConfig()
     {
       var lockObj = new ReaderWriterLockFilterAsyncAttribute(m_mgr, m_logger, null,
-        m_remoteStatus, m_remoteFactory, m_gitContext);
+        m_remoteStatus, m_gitContext);
     } /* End of Function - ThrowsForInvalidConfig */
 
     [TestMethod]
@@ -114,7 +113,7 @@ namespace git_cache.mstest.Filters
     public void ThrowsOnExecutionWithInvalidContext()
     {
       var lockObj = new ReaderWriterLockFilterAsyncAttribute(m_mgr, m_logger, m_config,
-        m_remoteStatus, m_remoteFactory, m_gitContext);
+        m_remoteStatus, m_gitContext);
       lockObj.OnResourceExecutionAsync(null, Substitute.For<ResourceExecutionDelegate>()).Wait();
     }
 
@@ -129,7 +128,7 @@ namespace git_cache.mstest.Filters
           filters,
           Substitute.For<IList<IValueProviderFactory>>());
       var lockObj = new ReaderWriterLockFilterAsyncAttribute(m_mgr, m_logger, m_config,
-        m_remoteStatus, m_remoteFactory, m_gitContext);
+        m_remoteStatus, m_gitContext);
       lockObj.OnResourceExecutionAsync(exingContext, null).Wait();
     }
 
@@ -152,7 +151,7 @@ namespace git_cache.mstest.Filters
 
       var lockObj = new ReaderWriterLockFilterAsyncAttribute(
         m_mgr, m_logger, m_config,
-        m_remoteStatus, m_remoteFactory, m_gitContext);
+        m_remoteStatus, m_gitContext);
       var execDel = Substitute.For<ResourceExecutionDelegate>();
       lockObj.OnResourceExecutionAsync(exingContext, execDel).Wait();
     }
@@ -178,7 +177,6 @@ namespace git_cache.mstest.Filters
     IReaderWriterLockManager<string> m_mgr;
     IRemoteStatus m_remoteStatus;
     IGitContext m_gitContext;
-    IRemoteRepositoryFactory m_remoteFactory;
     string m_testServer = "test";
     string m_owner = "owner";
     string m_repo = "repo";

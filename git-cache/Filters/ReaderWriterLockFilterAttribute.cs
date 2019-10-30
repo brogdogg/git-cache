@@ -41,9 +41,6 @@ namespace git_cache.Filters
     /// <param name="logger">
     /// Logger for the object
     /// </param>
-    /// <param name="remoteRepoFactory">
-    /// Remote repository factory, is this needed since it is in the git context?
-    /// </param>
     /// <param name="remoteStatusSvc">
     /// Service for getting the reference status
     /// </param>
@@ -52,7 +49,6 @@ namespace git_cache.Filters
       ILogger<ReaderWriterLockFilterAsyncAttribute> logger,
       IGitCacheConfiguration config,
       IRemoteStatus remoteStatusSvc,
-      IRemoteRepositoryFactory remoteRepoFactory,
       IGitContext gitContext)
     {
       if (null == (Manager = lockManager))
@@ -67,9 +63,6 @@ namespace git_cache.Filters
       if(null == (RemoteStatusService = remoteStatusSvc))
         throw new ArgumentNullException(
           nameof(remoteStatusSvc), "Remote status service must be a valid value");
-      if(null == (RemoteRepoFactory = remoteRepoFactory))
-        throw new ArgumentNullException(
-          nameof(remoteRepoFactory), "Remote repository factory must be a valid value");
       if(null == (GitContext = gitContext))
         throw new ArgumentNullException(
           nameof(gitContext), "A valid git context must be provided");
@@ -197,11 +190,6 @@ namespace git_cache.Filters
     /// of branches
     /// </summary>
     protected IRemoteStatus RemoteStatusService { get; }
-    /// <summary>
-    /// Gets the <see cref="IRemoteRepositoryFactory"/> object, used to
-    /// build <see cref="IRemoteRepository"/> objects
-    /// </summary>
-    protected IRemoteRepositoryFactory RemoteRepoFactory { get; }
     /// <summary>
     /// Gets the <see cref="IGitContext"/> object
     /// </summary>
