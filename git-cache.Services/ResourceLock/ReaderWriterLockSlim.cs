@@ -3,113 +3,102 @@
  * Remarks: 
  */
 using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading;
 
 namespace git_cache.Services.ResourceLock
 {
   /************************** ReaderWriterLockSlim ***************************/
   /// <summary>
-  /// 
+  /// Implementation of the <see cref="IReaderWriterLock"/> interface using
+  /// the <see cref="System.Threading.ReaderWriterLockSlim"/> implementation
   /// </summary>
   public class ReaderWriterLockSlim : IReaderWriterLock
   {
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
     /************************ Properties *************************************/
+    /*----------------------- IsReaderLockHeld ------------------------------*/
+    /// <inheritdoc/>
     public bool IsReaderLockHeld
     {
       get { return m_slim.IsUpgradeableReadLockHeld; }
-    }
+    } // end of property - IsReaderLockHeld
 
+    /*----------------------- IsWriterLockHeld ------------------------------*/
+    /// <inheritdoc/>
     public bool IsWriterLockHeld
     {
       get { return m_slim.IsWriteLockHeld; }
-    }
-
-    public int WriterSequenceNumber
-    {
-      get { return m_slim.WaitingWriteCount; }
-    }
+    } // end of property - IsWriterLockHeld
 
     /************************ Construction ***********************************/
+    /// <summary>
+    /// Constructor using a
+    /// <see cref="System.Threading.ReaderWriterLockSlim"/> object as the
+    /// underlying implementation of the reader/writer lock implementation.
+    /// </summary>
     public ReaderWriterLockSlim()
     {
       m_slim = new System.Threading.ReaderWriterLockSlim();
-    }
+    } // end of function - ReaderWriterLockSlim
+
     /************************ Methods ****************************************/
-    public void AcquireReaderLock(int msTimeout)
+    /*----------------------- AcquireReaderLock -----------------------------*/
+    /// <inheritdoc/>
+    public void AcquireReaderLock(
+                  int msTimeout)
     {
       if (!m_slim.TryEnterUpgradeableReadLock(msTimeout))
         throw new TimeoutException("Failed to acquire read lock");
-    }
+    } // end of function - AcquireReaderLock
 
-    public void AcquireReaderLock(TimeSpan timeout)
+    /*----------------------- AcquireReaderLock -----------------------------*/
+    /// <inheritdoc/>
+    public void AcquireReaderLock(
+                  TimeSpan timeout)
     {
-      if (!m_slim.TryEnterUpgradeableReadLock(timeout))
-        throw new TimeoutException("Failed to acquire read lock");
-    }
+      AcquireReaderLock(timeout.Milliseconds);
+    } // end of function - AcquireReaderLock
 
-    public void AcquireWriterLock(int msTimeout)
-    {
-      if (!m_slim.TryEnterWriteLock(msTimeout))
-        throw new TimeoutException("Failed to acquire write lock");
-    }
-
-    public void AcquireWriterLock(TimeSpan timeout)
-    {
-      if (!m_slim.TryEnterWriteLock(timeout))
-        throw new TimeoutException("Failed to acquire write lock");
-    }
-
-    public bool AnyWritersSince(int seqNum)
-    {
-      throw new NotImplementedException();
-    }
-
-    public void DowngradeFromWriterLock(ref LockCookie lockCookie)
+    /*----------------------- DowngradeFromWriterLock -----------------------*/
+    /// <inheritdoc/>
+    public void DowngradeFromWriterLock()
     {
       m_slim.ExitWriteLock();
-    }
+    } // end of function - DowngradeFromWriterLock
 
-    public LockCookie ReleaseLock()
-    {
-      if (m_slim.IsWriteLockHeld)
-        m_slim.ExitWriteLock();
-      if (m_slim.IsUpgradeableReadLockHeld)
-        m_slim.ExitUpgradeableReadLock();
-      return default(LockCookie);
-    }
-
+    /*----------------------- ReleaseReaderLock -----------------------------*/
+    /// <inheritdoc/>
     public void ReleaseReaderLock()
     {
       m_slim.ExitUpgradeableReadLock();
-    }
+    } // end of function - ReleaseReaderLock
 
+    /*----------------------- ReleaseWriterLock -----------------------------*/
+    /// <inheritdoc/>
     public void ReleaseWriterLock()
     {
       m_slim.ExitWriteLock();
-    }
+    } // end of function - ReleaseWriterLock
 
-    public void RestoreLock(ref LockCookie lockCookie)
+    /*----------------------- UpgradeToWriterLock ---------------------------*/
+    /// <inheritdoc/>
+    public void UpgradeToWriterLock(
+                  int msTimeout)
     {
-      throw new NotImplementedException();
-    }
-
-    public LockCookie UpgradeToWriterLock(int msTimeout)
-    {
+      if (!IsReaderLockHeld)
+        throw new InvalidOperationException(
+          "Trying to upgrade without holding the reader lock");
       if (!m_slim.TryEnterWriteLock(msTimeout))
         throw new TimeoutException("Failed to upgrade to writer");
-      return default(LockCookie);
-    }
+    } // end of function - UpgradeToWriterLock
 
-    public LockCookie UpgradeToWriterLock(TimeSpan timeout)
+    /*----------------------- UpgradeToWriterLock ---------------------------*/
+    /// <inheritdoc/>
+    public void UpgradeToWriterLock(
+                  TimeSpan timeout)
     {
-      if (!m_slim.TryEnterWriteLock(timeout))
-        throw new TimeoutException("Failed to upgrade to writer");
-      return default(LockCookie);
-    }
+      UpgradeToWriterLock(timeout.Milliseconds);
+    } // end of function - UpgradeToWriterLock
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
 

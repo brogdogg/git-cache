@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace git_cache.Filters
@@ -97,7 +96,6 @@ namespace git_cache.Filters
           // Grab the timeout value from configuration
           var timeout = GetWaitTimeSpan();
           Logger.LogInformation($"Got a timeout from configuration: {timeout}");
-          LockCookie lockCookie = default(LockCookie);
           // Get a lock object associated with the resource key
           var lockObj = Manager.GetFor(GetResourceKey(context));
 
@@ -121,7 +119,7 @@ namespace git_cache.Filters
           {
             Logger.LogInformation("Repository out of date, asking for writer lock");
             //lockObj.AcquireWriterLock(timeout);
-            lockCookie = lockObj.UpgradeToWriterLock(timeout);
+            lockObj.UpgradeToWriterLock(timeout);
           } // end of if - out-of-date
 
           try
@@ -138,7 +136,7 @@ namespace git_cache.Filters
                 GitContext.UpdateLocalAsync(local).Wait();
                 Logger.LogInformation("Local repository updated!");
               }
-              lockObj.DowngradeFromWriterLock(ref lockCookie);
+              lockObj.DowngradeFromWriterLock();
             } // end of if - repository is up-to-date
 
             Logger.LogInformation("Calling through to the next step in the pipeline");
