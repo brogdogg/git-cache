@@ -61,6 +61,7 @@ namespace git_cache.Services.mstest.ResourceLock
       // Setup
       var l = new ReaderWriterLockSlim();
       var ready = new System.Threading.ManualResetEvent(false);
+      var meToo = new System.Threading.ManualResetEvent(false);
       // Go ahead and grab the reader lock
       Debug.WriteLine($"Thread ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
       System.Threading.Thread t = new System.Threading.Thread((flObj) =>
@@ -70,8 +71,9 @@ namespace git_cache.Services.mstest.ResourceLock
         try
         {
           fl.AcquireReaderLock(0);
-          fl.UpgradeToWriterLock(0);
           ready.Set();
+          meToo.WaitOne();
+          fl.UpgradeToWriterLock(0);
           System.Threading.Thread.Sleep(1000);
           fl.DowngradeFromWriterLock();
           fl.ReleaseReaderLock();
@@ -83,7 +85,9 @@ namespace git_cache.Services.mstest.ResourceLock
       {
         var fl = (ReaderWriterLockSlim)flObj;
         Debug.WriteLine($"(t1)Thread ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
+        ready.WaitOne();
         fl.AcquireReaderLock(0);
+        meToo.Set();
         if(ready.WaitOne(0))
         {
           try { fl.UpgradeToWriterLock(0); }
@@ -98,6 +102,27 @@ namespace git_cache.Services.mstest.ResourceLock
       // Verify
       Assert.IsTrue(didThrow);
     } // end of function - ThrowsOnTimeoutAttemptingUpgrade
+
+    /*----------------------- StillInReadLockAfterDowngrading ---------------*/
+    /// <summary>
+    /// Verifies the state of the reader/writer when upgrading to a writer
+    /// and back down to a reader.
+    /// </summary>
+    [TestMethod]
+    public void StillInReadLockAfterDowngrading()
+    {
+      // Setup
+      var l = new ReaderWriterLockSlim();
+      // Act/Verify
+      l.AcquireReaderLock(0);
+      Assert.IsTrue(l.IsReaderLockHeld);
+      l.UpgradeToWriterLock(0);
+      Assert.IsTrue(l.IsWriterLockHeld);
+      Assert.IsTrue(l.IsReaderLockHeld);
+      l.DowngradeFromWriterLock();
+      Assert.IsFalse(l.IsWriterLockHeld);
+      Assert.IsTrue(l.IsReaderLockHeld);
+    } // end of function - StillInReadLockAfterDowngrading
     /************************ Static Functions *******************************/
 
     /************************ PROTECTED **************************************/

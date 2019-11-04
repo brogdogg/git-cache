@@ -96,6 +96,7 @@ namespace git_cache.Filters
           // Grab the timeout value from configuration
           var timeout = GetWaitTimeSpan();
           Logger.LogInformation($"Got a timeout from configuration: {timeout}");
+          Logger.LogInformation($"  In milliseconds: {timeout.TotalMilliseconds}");
           // Get a lock object associated with the resource key
           var lockObj = Manager.GetFor(GetResourceKey(context));
 
