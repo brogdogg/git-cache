@@ -40,9 +40,9 @@ namespace git_cache.Services.Git
     /// 
     /// </summary>
     /// <param name="local"></param>
-    public async Task<string> CloneAsync(ILocalRepository local)
+    public Task<string> CloneAsync(ILocalRepository local)
     {
-      return Clone(local);
+      return Task<string>.Factory.StartNew(() => Clone(local));
     } /* End of Function - CloneAsync */
 
     /*----------------------- Fetch -----------------------------------------*/
@@ -62,9 +62,9 @@ namespace git_cache.Services.Git
     /// 
     /// </summary>
     /// <param name="local"></param>
-    public async Task<string> FetchAsync(ILocalRepository local, bool doDryRun = false)
+    public Task<string> FetchAsync(ILocalRepository local, bool doDryRun = false)
     {
-      return Fetch(local, doDryRun);
+      return Task<string>.Factory.StartNew(() => Fetch(local, doDryRun));
     } /* End of Function - FetchAsync */
     /************************ Static *****************************************/
 

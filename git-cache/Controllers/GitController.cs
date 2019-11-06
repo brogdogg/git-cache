@@ -79,27 +79,30 @@ namespace git_cache.Controllers
     /// <param name="service">Service from git</param>
     /// <returns>JSON Result (for now)</returns>
     [HttpGet("{destinationServer}/{repositoryOwner}/{repository}/info/refs", Name = "Get")]
-    public async Task<ActionResult> GetAsync(
+    public Task<ActionResult> GetAsync(
       string destinationServer,
       string repositoryOwner,
       string repository,
       [FromQuery]string service,
       [FromHeader]string authorization)
     {
-      Logger.LogTrace($"GET for: server={destinationServer}; owner={repositoryOwner}; repo={repository}");
-      ActionResult retval = null;
-      var repo = GitContext.RemoteFactory.Build(destinationServer,
-        repositoryOwner,
-        repository,
-        authorization);
+      return Task<ActionResult>.Factory.StartNew(() =>
+      {
+        Logger.LogTrace($"GET for: server={destinationServer}; owner={repositoryOwner}; repo={repository}");
+        ActionResult retval = null;
+        var repo = GitContext.RemoteFactory.Build(destinationServer,
+          repositoryOwner,
+          repository,
+          authorization);
 
-      // Create a local repository based on the remote repo
-      var local = GitContext.LocalFactory.Build(repo, GitContext.Configuration);
-      // Then create a custom git service advertisement result to send
-      // back to the client, basically forwarding everything we just
-      // updated to the client now
-      retval = new ServiceAdvertisementResult(service, local, Shell);
-      return retval;
+        // Create a local repository based on the remote repo
+        var local = GitContext.LocalFactory.Build(repo, GitContext.Configuration);
+        // Then create a custom git service advertisement result to send
+        // back to the client, basically forwarding everything we just
+        // updated to the client now
+        retval = new ServiceAdvertisementResult(service, local, Shell);
+        return retval;
+      });
     } // end of function - GetAsync
 
     /// <summary>

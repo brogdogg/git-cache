@@ -44,35 +44,37 @@ namespace git_cache.Services.Git.Status
     /// <param name="localRepo">
     /// Reference to a repository to get the status for all references
     /// </param>
-    public async Task<ICollection<RefStatus>> GetAsync(ILocalRepository localRepo)
+    public Task<ICollection<RefStatus>> GetAsync(ILocalRepository localRepo)
     {
-      var retval = new List<RefStatus>();
-      lock (m_lock)
+      return Task<ICollection<RefStatus>>.Factory.StartNew(() =>
       {
-        var result = GitExecutor.FetchAsync(localRepo, true).Result;
-        if (null != result)
+        var retval = new List<RefStatus>();
+        lock (m_lock)
         {
-          Regex pattern = new Regex(@"\s(?<flag>.)\s(?<summary>\b(\[up to date])|.*)\s(?<from>[^\s]+)\s+->\s+(?<to>[^\s]+)(?<reason> ?.*)");
-          foreach (var line in result.Split('\n'))
+          var result = GitExecutor.FetchAsync(localRepo, true).Result;
+          if (null != result)
           {
-            Match m = pattern.Match(line);
-            if (null != m && m.Success)
+            Regex pattern = new Regex(@"\s(?<flag>.)\s(?<summary>\b(\[up to date])|.*)\s(?<from>[^\s]+)\s+->\s+(?<to>[^\s]+)(?<reason> ?.*)");
+            foreach (var line in result.Split('\n'))
             {
-              retval.Add(new RefStatus()
+              Match m = pattern.Match(line);
+              if (null != m && m.Success)
               {
-                Flag = RefStatus.GetMappedState(m.Groups["flag"].Value[0]),
-                From = m.Groups["from"].Value,
-                To = m.Groups["to"].Value,
-                Summary = m.Groups["summary"].Value,
-                Reason = m.Groups["reason"].Value
-              });
+                retval.Add(new RefStatus()
+                {
+                  Flag = RefStatus.GetMappedState(m.Groups["flag"].Value[0]),
+                  From = m.Groups["from"].Value,
+                  To = m.Groups["to"].Value,
+                  Summary = m.Groups["summary"].Value,
+                  Reason = m.Groups["reason"].Value
+                });
 
-            } // end of if - successful match
-          } // end of foreach - line in the result
-        } // end of if - valid result
-      }
-
-      return retval;
+              } // end of if - successful match
+            } // end of foreach - line in the result
+          } // end of if - valid result
+        }
+        return retval;
+      });
     } /* End of Function - GetAsync */
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
