@@ -42,7 +42,8 @@ namespace git_cache.Services.Extensions.DependencyInjection
         .AddSingleton<IGitExecuter, GitExecuter>()
         .AddSingleton<IGitLFSExecuter, GitLFSExecutor>()
         .AddSingleton<IGitContext, GitContext>()
-        .AddResourceLocks();
+        .AddResourceLocks()
+        .AddRemoteStatusService();
       return services;
     } /* End of Function - AddGitCacheServices */
 
