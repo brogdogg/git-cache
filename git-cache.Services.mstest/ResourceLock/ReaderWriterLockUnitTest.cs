@@ -26,9 +26,8 @@ namespace git_cache.Services.mstest.ResourceLock
     /************************ Methods ****************************************/
     /*----------------------- CanAcquireReadLock ----------------------------*/
     /// <summary>
-    /// 
+    /// Can we correctly acquire the reader lock without issue?
     /// </summary>
-    /// <returns></returns>
     [TestMethod]
     public void CanAcquireReadLock()
     {
@@ -41,6 +40,11 @@ namespace git_cache.Services.mstest.ResourceLock
       Assert.IsFalse(l.IsReaderLockHeld);
     } // end of function - CanAcquireReadLock
 
+    /*----------------------- ThrowsOnUpgradeWithoutRead --------------------*/
+    /// <summary>
+    /// Verifies the reader writer lock throws when trying to upgrade to
+    /// a writer without owning the reader lock first
+    /// </summary>
     [TestMethod]
     [ExpectedException(typeof(InvalidOperationException))]
     public void ThrowsOnUpgradeWithoutRead()
@@ -49,12 +53,13 @@ namespace git_cache.Services.mstest.ResourceLock
       var l = new ReaderWriterLockSlim();
       // Act/Verify
       l.UpgradeToWriterLock(TimeSpan.MinValue);
-    }
+    } /* End of Function - ThrowsOnUpgradeWithoutRead */
+
     /*----------------------- ThrowsOnTimeoutAttemptingUpgrade --------------*/
     /// <summary>
-    /// 
+    /// Verifies the reader writer lock throws a timeout when attempting to
+    /// upgrade without in the amount of time.
     /// </summary>
-    /// <returns></returns>
     [TestMethod]
     public void ThrowsOnTimeoutAttemptingUpgrade()
     {
@@ -63,11 +68,9 @@ namespace git_cache.Services.mstest.ResourceLock
       var ready = new System.Threading.ManualResetEvent(false);
       var meToo = new System.Threading.ManualResetEvent(false);
       // Go ahead and grab the reader lock
-      Debug.WriteLine($"Thread ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
       System.Threading.Thread t = new System.Threading.Thread((flObj) =>
       {
         var fl = (ReaderWriterLockSlim)flObj;
-        Debug.WriteLine($"(t)Thread ID: {System.Threading.Thread.CurrentThread.ManagedThreadId}");
         try
         {
           fl.AcquireReaderLock(0);
@@ -122,7 +125,10 @@ namespace git_cache.Services.mstest.ResourceLock
       l.DowngradeFromWriterLock();
       Assert.IsFalse(l.IsWriterLockHeld);
       Assert.IsTrue(l.IsReaderLockHeld);
+      l.ReleaseReaderLock();
+      Assert.IsFalse(l.IsReaderLockHeld);
     } // end of function - StillInReadLockAfterDowngrading
+
     /************************ Static Functions *******************************/
 
     /************************ PROTECTED **************************************/

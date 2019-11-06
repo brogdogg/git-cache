@@ -27,7 +27,9 @@ namespace git_cache.Services.ResourceLock
     /// <param name="factory"></param>
     public ReaderWriterLockManager(IReaderWriterLockFactory factory, ILogger<ReaderWriterLockManager<TKey>> logger)
     {
-      m_logger = logger;
+      if (null == (m_logger = logger))
+        throw new ArgumentNullException(
+          nameof(logger), "Must provide a valid logger class");
       if (null == (m_factory = factory))
         throw new ArgumentNullException(
           nameof(factory), "Must provide a valid factory class");
