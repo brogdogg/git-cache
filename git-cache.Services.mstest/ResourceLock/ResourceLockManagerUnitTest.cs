@@ -13,7 +13,8 @@ namespace git_cache.Services.mstest.ResourceLock
 {
   /************************** ResourceLockManagerUnitTest ********************/
   /// <summary>
-  /// 
+  /// Verifies the behavior of the <see cref="ResourceLockManager{TKey}"/>
+  /// class.
   /// </summary>
   [TestClass]
   public class ResourceLockManagerUnitTest

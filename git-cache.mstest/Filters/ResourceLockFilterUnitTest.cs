@@ -78,7 +78,7 @@ namespace git_cache.mstest.Filters
         Substitute.For<IList<IFilterMetadata>>(),
         Substitute.For<IList<IValueProviderFactory>>());
 
-      var filter = new ResourceLockFilterAttribute(m_config, m_mgr, m_logger);
+      var filter = new ResourceLockFilterAttribute(m_mgr, m_logger, m_config);
       filter.OnResourceExecuting(context);
       m_mgr.Received(1).BlockFor("test_owner_repo", m_timeout);
     } /* End of Function - OnResourceExecuting */
@@ -95,7 +95,7 @@ namespace git_cache.mstest.Filters
         m_actionContext,
         Substitute.For<IList<IFilterMetadata>>());
 
-      var filter = new ResourceLockFilterAttribute(m_config, m_mgr, m_logger);
+      var filter = new ResourceLockFilterAttribute(m_mgr, m_logger, m_config);
       filter.OnResourceExecuted(context);
       m_lock.Received(0).Release();
     } /* End of Function - OnResourceExecutedWithoutExecuting */
@@ -119,7 +119,7 @@ namespace git_cache.mstest.Filters
           m_actionContext,
           filters);
 
-      var filter = new ResourceLockFilterAttribute(m_config, m_mgr, m_logger);
+      var filter = new ResourceLockFilterAttribute(m_mgr, m_logger, m_config);
       filter.OnResourceExecuting(exingContext);
       filter.OnResourceExecuted(exedContext);
       m_lock.Received(1).Release();
@@ -134,7 +134,7 @@ namespace git_cache.mstest.Filters
     [ExpectedException(typeof(ArgumentNullException))]
     public void ThrowsOnNullConfig()
     {
-      var filter = new ResourceLockFilterAttribute(null, m_mgr, m_logger);
+      var filter = new ResourceLockFilterAttribute(m_mgr, m_logger, null);
     } /* End of Function - ThrowsOnNullConfig */
 
     /*----------------------- ThrowsOnNullManager ---------------------------*/
@@ -146,7 +146,7 @@ namespace git_cache.mstest.Filters
     [ExpectedException(typeof(ArgumentNullException))]
     public void ThrowsOnNullManager()
     {
-      var filter = new ResourceLockFilterAttribute(m_config, null, m_logger);
+      var filter = new ResourceLockFilterAttribute(null, m_logger, m_config);
     } /* End of Function - ThrowsOnNullManager */
 
     /*----------------------- ThrowsOnNullLogger ----------------------------*/
@@ -157,7 +157,7 @@ namespace git_cache.mstest.Filters
     [ExpectedException(typeof(ArgumentNullException))]
     public void ThrowsOnNullLogger()
     {
-      var filter = new ResourceLockFilterAttribute(m_config, m_mgr, null);
+      var filter = new ResourceLockFilterAttribute(m_mgr, null, m_config);
     } /* End of Function - ThrowsOnNullLogger */
     /************************ Fields *****************************************/
     /************************ Static *****************************************/

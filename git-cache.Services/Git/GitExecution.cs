@@ -42,7 +42,7 @@ namespace git_cache.Services.Git
     /// <param name="local"></param>
     public Task<string> CloneAsync(ILocalRepository local)
     {
-      return Task.Run(() => Clone(local));
+      return Task<string>.Factory.StartNew(() => Clone(local));
     } /* End of Function - CloneAsync */
 
     /*----------------------- Fetch -----------------------------------------*/
@@ -50,10 +50,11 @@ namespace git_cache.Services.Git
     /// 
     /// </summary>
     /// <param name="local"></param>
-    public string Fetch(ILocalRepository local)
+    public string Fetch(ILocalRepository local, bool doDryRun = false)
     {
       Shell.Execute($"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"");
-      return Shell.Execute($"git -C \"{local.Path}\" fetch --prune --quiet");
+      return Shell.Execute($"git -C \"{local.Path}\" fetch --prune"
+        + (doDryRun ? " --verbose --dry-run 2>&1" : " --quiet"));
     } /* End of Function - Fetch */
 
     /*----------------------- FetchAsync ------------------------------------*/
@@ -61,10 +62,9 @@ namespace git_cache.Services.Git
     /// 
     /// </summary>
     /// <param name="local"></param>
-    public async Task<string> FetchAsync(ILocalRepository local)
+    public Task<string> FetchAsync(ILocalRepository local, bool doDryRun = false)
     {
-      await Shell.ExecuteAsync($"git -C \"{local.Path}\" remote set-url origin \"{local.Remote.GitUrl}\"");
-      return await Shell.ExecuteAsync($"git -C \"{local.Path}\" fetch --prune --quiet");
+      return Task<string>.Factory.StartNew(() => Fetch(local, doDryRun));
     } /* End of Function - FetchAsync */
     /************************ Static *****************************************/
 

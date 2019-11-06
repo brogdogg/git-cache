@@ -37,6 +37,12 @@ namespace git_cache.Services.Extensions.DependencyInjection
       // And we will allow for a generic use of the lock manager, so a
       // consumer can use the type of key desired
       services.AddSingleton(typeof(IResourceLockManager<>), typeof(ResourceLockManager<>));
+
+      // Add the reader/writer lock classes to the services
+      services.AddSingleton(typeof(IReaderWriterLockFactory<>), typeof(ReaderWriterLockFactory<>))
+              .AddSingleton<IReaderWriterLockFactory, ReaderWriterLockFactory<Services.ResourceLock.ReaderWriterLockSlim>>()
+              .AddSingleton(typeof(IReaderWriterLockManager<>), typeof(ReaderWriterLockManager<>));
+
       return services;
     } /* End of Function - AddResourceLocks */
 
