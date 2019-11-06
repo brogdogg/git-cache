@@ -47,6 +47,19 @@ namespace git_cache.Services.mstest.Extensions.DependencyInjection
       Assert.IsInstanceOfType(
         serviceProvider.GetService<IResourceLockFactory<FakeResourceLock>>(),
         typeof(ResourceLockFactory<FakeResourceLock>));
+
+      // Verify the reader/writer lock adds.
+      Assert.IsInstanceOfType(
+        serviceProvider.GetService<IReaderWriterLockFactory>(),
+        typeof(ReaderWriterLockFactory<Services.ResourceLock.ReaderWriterLockSlim>));
+
+      Assert.IsInstanceOfType(
+        serviceProvider.GetService<IReaderWriterLockManager<string>>(),
+        typeof(ReaderWriterLockManager<string>));
+
+      Assert.IsInstanceOfType(
+        serviceProvider.GetService<IResourceLockFactory<FakeResourceLock>>(),
+        typeof(ResourceLockFactory<FakeResourceLock>));
     } /* End of Function - AddResourceLocks */
     /************************ Fields *****************************************/
     /************************ Static *****************************************/

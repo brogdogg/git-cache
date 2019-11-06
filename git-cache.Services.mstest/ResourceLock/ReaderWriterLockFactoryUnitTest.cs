@@ -47,6 +47,10 @@ namespace git_cache.Services.mstest.ResourceLock
     /*======================= PRIVATE =======================================*/
     /************************ Events *****************************************/
     /************************ Types ******************************************/
+    /// <summary>
+    /// A test implementation of the <see cref="IReaderWriterLock"/>
+    /// interface.
+    /// </summary>
     private class TestReaderWriterLock : IReaderWriterLock
     {
       public bool IsReaderLockHeld => throw new NotImplementedException();

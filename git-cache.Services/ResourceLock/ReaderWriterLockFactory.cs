@@ -2,15 +2,13 @@
  * File...: ReaderWriterLockFactory.cs
  * Remarks: 
  */
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace git_cache.Services.ResourceLock
 {
   /************************** ReaderWriterLockFactory ************************/
   /// <summary>
-  /// 
+  /// Implementation of the <see cref="IReaderWriterLockFactory{TLock}"/>
+  /// interface.
   /// </summary>
   public class ReaderWriterLockFactory<TLock> : IReaderWriterLockFactory<TLock>
     where TLock : IReaderWriterLock, new()

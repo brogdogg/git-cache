@@ -8,13 +8,12 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NSubstitute;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace git_cache.Services.mstest.ResourceLock
 {
   /************************** ReaderWriterLockManagerUnitTest ****************/
   /// <summary>
-  /// 
+  /// Tests the <see cref="ReaderWriterLockManager{TKey}"/> class object.
   /// </summary>
   [TestClass]
   public class ReaderWriterLockManagerUnitTest

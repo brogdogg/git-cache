@@ -5,16 +5,13 @@
 using git_cache.Services.Git.Status;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace git_cache.Services.mstest.Git.Status
 {
   /*========================= RefStatusUnitTest =============================*/
   /// <summary>
-  /// 
+  /// Verifies the behavior of the <see cref="RefStatus"/> class object.
   /// </summary>
-  /// <remarks></remarks>
   [TestClass]
   public class RefStatusUnitTest
   {

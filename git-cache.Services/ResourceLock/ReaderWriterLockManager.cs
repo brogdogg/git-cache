@@ -5,13 +5,13 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace git_cache.Services.ResourceLock
 {
   /************************** ReaderWriterLockManager ************************/
   /// <summary>
-  /// 
+  /// Implementation of the <see cref="IReaderWriterLockManager{TKey}"/>
+  /// interface
   /// </summary>
   public class ReaderWriterLockManager<TKey>
     : DisposableBase, IReaderWriterLockManager<TKey>
@@ -22,9 +22,10 @@ namespace git_cache.Services.ResourceLock
     /************************ Construction ***********************************/
     /*----------------------- ReaderWriterLockManager -----------------------*/
     /// <summary>
-    /// 
+    /// Constructor
     /// </summary>
-    /// <param name="factory"></param>
+    /// <param name="factory">Factory to generate lock objects</param>
+    /// <param name="logger">Logger object tied to this instance</param>
     public ReaderWriterLockManager(IReaderWriterLockFactory factory, ILogger<ReaderWriterLockManager<TKey>> logger)
     {
       if (null == (m_logger = logger))
@@ -37,10 +38,7 @@ namespace git_cache.Services.ResourceLock
 
     /************************ Methods ****************************************/
     /*----------------------- GetFor ----------------------------------------*/
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="key"></param>
+    /// <inheritdoc />
     public IReaderWriterLock GetFor(TKey key)
     {
       m_logger.LogInformation($"Getting resource lock for key: {key}");
@@ -75,10 +73,7 @@ namespace git_cache.Services.ResourceLock
     /************************ Construction ***********************************/
     /************************ Methods ****************************************/
     /*----------------------- Dispose ---------------------------------------*/
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="disposing"></param>
+    /// <inheritdoc />
     protected override void Dispose(bool disposing)
     {
       lock (m_lock)
