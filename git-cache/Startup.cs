@@ -5,8 +5,10 @@
 using git_cache.Services.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 
 namespace git_cache
 {
@@ -46,7 +48,11 @@ namespace git_cache
     /// <param name="services"></param>
     public void ConfigureServices(IServiceCollection services)
     {
-      services.AddMvc();
+      services.AddMvc(options => options.EnableEndpointRouting =false);
+      services.Configure<KestrelServerOptions>(options =>
+      {
+        options.AllowSynchronousIO = true;
+      });
       // Configure for the git-cache configuration
       services.ConfigureGitCache(Configuration);
       // And add all the git-cache services required to run
@@ -60,9 +66,9 @@ namespace git_cache
     /// </summary>
     /// <param name="app"></param>
     /// <param name="env"></param>
-    public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+    public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-      if (env.IsDevelopment())
+      if (env.IsEnvironment("Development"))
       {
         app.UseDeveloperExceptionPage();
       }
