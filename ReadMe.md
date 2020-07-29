@@ -4,7 +4,7 @@
 
 ### Local Runs
 
-- dotnet core 2.2
+- dotnet core 3.1
 - bash
 
 ### Docker Runs
@@ -13,7 +13,7 @@
 
 ### Development
 
-- Visual Studio 2017
+- Visual Studio 2019
 
 
 ## Running
