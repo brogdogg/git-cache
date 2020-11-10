@@ -1,19 +1,27 @@
 # Git Cache
 
+- [Git Cache](#git-cache)
+  - [Requirements](#requirements)
+    - [Local Runs](#local-runs)
+    - [Docker Runs](#docker-runs)
+    - [Development](#development)
+  - [Running](#running)
+  - [Configuration](#configuration)
+
 ## Requirements
 
 ### Local Runs
 
-- dotnet core 3.1
+- .NET 5.0.100
 - bash
 
 ### Docker Runs
 
-- Docker (for Windows)
+- Docker
 
 ### Development
 
-- Visual Studio 2019
+- Visual Studio 2019 16.8
 
 
 ## Running
