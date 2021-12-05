@@ -15,7 +15,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\git-cache\git-cache.csproj" />
+    <ProjectReference Include="$(SrcDirectory)\git-cache\git-cache.csproj" />
   </ItemGroup>
 
 </Project>
