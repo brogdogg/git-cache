@@ -13,9 +13,10 @@
   <PropertyGroup>
     <NetCoreCurrentVersion Condition="'$(MSBuildVersion)' &gt;= 17.0.0">6.0</NetCoreCurrentVersion>
     <NetCoreCurrentVersion Condition="'$(MSBuildVersion)' &lt; 17.0.0">5.0</NetCoreCurrentVersion>
-    <NetCoreMinimumVersion>6.0</NetCoreMinimumVersion>
+    <NetCoreMinimumVersion>5.0</NetCoreMinimumVersion>
     <NetCoreCurrent>net$(NetCoreCurrentVersion)</NetCoreCurrent>
     <NetCoreMinimum>net$(NetCoreMinimumVersion)</NetCoreMinimum>
+    <NetTargetFrameworks>$(NetCoreCurrent);</NetTargetFrameworks>
   </PropertyGroup>
 
   <!-- Deterministic build support -->
