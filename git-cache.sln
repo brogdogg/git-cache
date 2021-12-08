@@ -5,13 +5,11 @@ VisualStudioVersion = 16.0.300011.22
 MinimumVisualStudioVersion = 15.0.26124.0
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "git-cache", "src\git-cache\git-cache.csproj", "{FE27918F-871E-4CB8-BDBB-83490EB8D67C}"
 EndProject
-Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker\docker-compose.dcproj", "{F54AEBEF-64F1-440F-BD1B-30ECF1C22FB8}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{59880902-BD96-4A10-BF5C-44044B222380}"
 	ProjectSection(SolutionItems) = preProject
 		Directory.Build.props = Directory.Build.props
 		Directory.Target.props = Directory.Target.props
-		git-cache-data\Dockerfile = git-cache-data\Dockerfile
+		docker\git-cache-data\Dockerfile = docker\git-cache-data\Dockerfile
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "git-cache.mstest", "tests\git-cache.mstest\git-cache.mstest.csproj", "{D891485D-6C9A-40D4-B98D-C51CCBDECA11}"
@@ -19,6 +17,10 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "git-cache.Services", "src\git-cache.Services\git-cache.Services.csproj", "{C8BCB0D9-BE0D-45B5-A625-BB026C423FE6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "git-cache.Services.mstest", "tests\git-cache.Services.mstest\git-cache.Services.mstest.csproj", "{09997068-C02F-42B2-9A2C-CF4CF4860EAB}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{727B2406-E7B8-4C15-846B-A27D422D5B35}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{518E7F40-DDE6-4B2D-A8C0-205C9A952212}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,10 +32,6 @@ Global
 		{FE27918F-871E-4CB8-BDBB-83490EB8D67C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FE27918F-871E-4CB8-BDBB-83490EB8D67C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{FE27918F-871E-4CB8-BDBB-83490EB8D67C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F54AEBEF-64F1-440F-BD1B-30ECF1C22FB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F54AEBEF-64F1-440F-BD1B-30ECF1C22FB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F54AEBEF-64F1-440F-BD1B-30ECF1C22FB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F54AEBEF-64F1-440F-BD1B-30ECF1C22FB8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D891485D-6C9A-40D4-B98D-C51CCBDECA11}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D891485D-6C9A-40D4-B98D-C51CCBDECA11}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D891485D-6C9A-40D4-B98D-C51CCBDECA11}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -49,6 +47,12 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{FE27918F-871E-4CB8-BDBB-83490EB8D67C} = {518E7F40-DDE6-4B2D-A8C0-205C9A952212}
+		{D891485D-6C9A-40D4-B98D-C51CCBDECA11} = {727B2406-E7B8-4C15-846B-A27D422D5B35}
+		{C8BCB0D9-BE0D-45B5-A625-BB026C423FE6} = {518E7F40-DDE6-4B2D-A8C0-205C9A952212}
+		{09997068-C02F-42B2-9A2C-CF4CF4860EAB} = {727B2406-E7B8-4C15-846B-A27D422D5B35}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {7C12AE59-3981-4E3B-B191-9A34090C0354}

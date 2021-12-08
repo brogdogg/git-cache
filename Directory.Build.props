@@ -4,14 +4,16 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <TestSrcDirectory>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', 'tests'))</TestSrcDirectory>
+    <RepoDirectory>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)'))</RepoDirectory>
+    <DockerDirectory>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', 'docker'))</DockerDirectory>
     <SrcDirectory>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', 'src'))</SrcDirectory>
+    <TestSrcDirectory>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', 'tests'))</TestSrcDirectory>
   </PropertyGroup>
 
   <PropertyGroup>
     <NetCoreCurrentVersion Condition="'$(MSBuildVersion)' &gt;= 17.0.0">6.0</NetCoreCurrentVersion>
     <NetCoreCurrentVersion Condition="'$(MSBuildVersion)' &lt; 17.0.0">5.0</NetCoreCurrentVersion>
-    <NetCoreMinimumVersion>5.0</NetCoreMinimumVersion>
+    <NetCoreMinimumVersion>6.0</NetCoreMinimumVersion>
     <NetCoreCurrent>net$(NetCoreCurrentVersion)</NetCoreCurrent>
     <NetCoreMinimum>net$(NetCoreMinimumVersion)</NetCoreMinimum>
   </PropertyGroup>

@@ -3,7 +3,6 @@
   <PropertyGroup>
     <TargetFrameworks>$(NetCoreCurrent);</TargetFrameworks>
     <TargetPlatformMinimumVersion>$(NetCoreMinimum);</TargetPlatformMinimumVersion>
-    <DockerComposeProjectPath>..\docker-compose.dcproj</DockerComposeProjectPath>
     <RootNamespace>git_cache</RootNamespace>
   </PropertyGroup>
 
