@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        dotnet-version: ['5.0.x']
+        dotnet-version: ['5.0.x', '6.0.x']
     steps:
       - uses : actions/checkout@v2
       - name: Setup .NET SDK ${{matrix.dotnet-version}}
@@ -20,8 +20,8 @@ jobs:
         with:
           dotnet-version: ${{matrix.dotnet-version}}
       - name: Install dependencies
-        run: dotnet restore git-cache.sln
+        run: dotnet restore
       - name: Build
-        run: dotnet build --configuration Release --no-restore git-cache.sln
+        run: dotnet build --configuration Release --no-restore
       - name: Test
-        run: dotnet test --no-restore --verbosity normal git-cache.sln
+        run: dotnet test --no-restore --verbosity normal
