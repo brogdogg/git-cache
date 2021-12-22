@@ -4,7 +4,7 @@ services:
   git-cache-data:
     build:
       context: .
-      dockerfile: git-cache-data/Dockerfile
+      dockerfile: docker/git-cache-data/Dockerfile
     volumes:
       - git-cache-data-volume:/var/gitcache
 
@@ -14,7 +14,7 @@ services:
       - git-cache-data
     build:
       context: .
-      dockerfile: git-cache/Dockerfile
+      dockerfile: src/git-cache/Dockerfile
     volumes:
       - git-cache-data-volume:/var/gitcache
 

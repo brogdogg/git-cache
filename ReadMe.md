@@ -12,7 +12,7 @@
 
 ### Local Runs
 
-- .NET 5.0.100
+- .NET 6.0.100
 - bash
 
 ### Docker Runs
@@ -21,7 +21,7 @@
 
 ### Development
 
-- Visual Studio 2019 16.8
+- Visual Studio 2022 17.0
 
 
 ## Running
