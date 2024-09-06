@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/aspnet:6.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 80
 RUN apt-get update && apt-get install -y git
@@ -11,7 +11,7 @@ RUN build_deps="curl" && \
     DEBIAN_FRONTEND=noninteractive apt-get purge -y --auto-remove ${build_deps} && \
     rm -r /var/lib/apt/lists/*
 
-FROM mcr.microsoft.com/dotnet/sdk:6.0 as build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 as build
 WORKDIR /src
 COPY git-cache.sln ./
 COPY Directory.* ./
@@ -26,7 +26,7 @@ WORKDIR /src/src/git-cache
 RUN dotnet build -c Release -o /app
 
 FROM build AS publish
-RUN dotnet publish -c Release -o /app -f net6.0
+RUN dotnet publish -c Release -o /app -f net8.0
 
 FROM base AS final
 WORKDIR /app
