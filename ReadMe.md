@@ -12,7 +12,7 @@
 
 ### Local Runs
 
-- .NET 5.0.100
+- .NET 8.0
 - bash
 
 ### Docker Runs
@@ -21,7 +21,7 @@
 
 ### Development
 
-- Visual Studio 2019 16.8
+- Visual Studio 2022
 
 
 ## Running
@@ -39,7 +39,7 @@ git-cache-data_1  | Data container for Git cache
 git-cache_git-cache-data_1 exited with code 0
 git-cache_1       | Hosting environment: Development
 git-cache_1       | Content root path: /app
-git-cache_1       | Now listening on: http://[::]:80
+git-cache_1       | Now listening on: http://[::]:8085
 git-cache_1       | Application started. Press Ctrl+C to shut down.
 ```
 
@@ -53,3 +53,4 @@ At this point should be able to clone using the cache:
 
 The default port on the host is `8085`. This can be controlled with
 an environment variable `GIT_HTTP_PORT=8888` or with a `.env` file.
+

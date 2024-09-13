@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS base
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 80
 RUN apt-get update && apt-get install -y git
@@ -11,21 +11,22 @@ RUN build_deps="curl" && \
     DEBIAN_FRONTEND=noninteractive apt-get purge -y --auto-remove ${build_deps} && \
     rm -r /var/lib/apt/lists/*
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0 as build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY git-cache.sln ./
-COPY git-cache/git-cache.csproj git-cache/
-COPY git-cache.mstest/git-cache.mstest.csproj git-cache.mstest/
-COPY git-cache.Services/git-cache.Services.csproj git-cache.Services/
-COPY git-cache.Services.mstest/git-cache.Services.mstest.csproj git-cache.Services.mstest/
-COPY docker-compose.dcproj ./
+COPY Directory.* ./
+COPY src/ src/
+COPY tests/ tests/
+COPY docker/ docker/
+RUN ls -hal .
+RUN cat git-cache.sln
 RUN dotnet restore git-cache.sln -nowarn:msb3202,nu1503
 COPY . .
-WORKDIR /src/git-cache
+WORKDIR /src/src/git-cache
 RUN dotnet build -c Release -o /app
 
 FROM build AS publish
-RUN dotnet publish -c Release -o /app
+RUN dotnet publish -c Release -o /app -f net8.0
 
 FROM base AS final
 WORKDIR /app

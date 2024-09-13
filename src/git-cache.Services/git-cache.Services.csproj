@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
-    <TargetPlatformMinimumVersion>net5.0</TargetPlatformMinimumVersion>
+    <TargetFrameworks>$(NetTargetFrameworks);</TargetFrameworks>
+    <TargetPlatformMinimumVersion>$(NetCoreMinimum);</TargetPlatformMinimumVersion>
     <RootNamespace>git_cache.Services</RootNamespace>
   </PropertyGroup>
 
@@ -11,7 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="3.1.6" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="5.0.0" />
   </ItemGroup>
 
 </Project>
