@@ -11,7 +11,7 @@ RUN build_deps="curl" && \
     DEBIAN_FRONTEND=noninteractive apt-get purge -y --auto-remove ${build_deps} && \
     rm -r /var/lib/apt/lists/*
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 as build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY git-cache.sln ./
 COPY Directory.* ./
