@@ -41,6 +41,7 @@ namespace git_cache
     public static IWebHost BuildWebHost(string[] args) =>
         WebHost.CreateDefaultBuilder(args)
             .UseStartup<Startup>()
+            .UseUrls("http://*:8085")
             .Build();
 
     /*======================= PROTECTED =====================================*/
