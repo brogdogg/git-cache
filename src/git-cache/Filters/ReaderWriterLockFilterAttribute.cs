@@ -90,7 +90,7 @@ namespace git_cache.Filters
         throw new ArgumentNullException(
           nameof(next), "A valid execution delegate must be provided");
 
-      return Task.Factory.StartNew(() =>
+      return Task.Factory.StartNew(async () =>
         {
           Logger.LogTrace("Enter main execution task");
           // Grab the timeout value from configuration
@@ -117,33 +117,32 @@ namespace git_cache.Filters
           Logger.LogInformation("Grabbing reader lock");
           // Grab the reader lock first, as we need it to upgrade to a writer lock
           lockObj.AcquireReaderLock(timeout);
-          // Upgrade to a writer lock
-          Logger.LogInformation("Upgrading to writer lock, to check repository status");
-          lockObj.UpgradeToWriterLock(timeout);
-          // If the repository is up-to-date, then we can continue as a reader
-          if (IsRepositoryUpToDate(local))
-          {
-            Logger.LogInformation("Repository is up-to-date, continuing as a reader");
-            // If the repository is up-to-date, then we can continue as a reader
-            lockObj.DowngradeFromWriterLock();
-          } // end of if - out-of-date
-          // Otherwise, we will need to update the repository, so keep the writer lock status
-          else
-          {
-            Logger.LogInformation("Repository is out-of-date, we will update it");
-          }
 
           try
           {
             // Check to see if we are out of date, if we are then
             // upgrade to writer, to update our local values
-            if (lockObj.IsWriterLockHeld)
+            if (!IsRepositoryUpToDate(local))
             {
-              Logger.LogInformation("We are responsible for updating the local repository");
-              GitContext.UpdateLocalAsync(local).Wait();
-              Logger.LogInformation("Local repository updated!");
+              Logger.LogInformation("Repository is out of date, upgrading to writer lock");
+              // Upgrade to a writer lock, which will block other readers
+              // and writers until we are done
+              lockObj.UpgradeToWriterLock(timeout);
+
+              // Since we were potentially in line to get the writer lock,
+              // we will check again to see if we are out of date
+              if (!IsRepositoryUpToDate(local))
+              {
+                Logger.LogInformation("Repository is still out of date, updating...");
+                await GitContext.UpdateLocalAsync(local);
+                Logger.LogInformation("Local repository updated!");
+              }
+              else
+              {
+                Logger.LogInformation("Repository already updated, no need to do anything; downgrading lock");
+              }
               lockObj.DowngradeFromWriterLock();
-            } // end of if - repository is up-to-date
+            }
 
             Logger.LogInformation("Calling through to the next step in the pipeline");
             // Allow the rest of the pipeline to continue
