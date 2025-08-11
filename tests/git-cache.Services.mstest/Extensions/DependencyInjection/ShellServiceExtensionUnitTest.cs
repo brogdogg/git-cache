@@ -55,7 +55,7 @@ namespace git_cache.Services.mstest.Extensions.DependencyInjection
         {
           threw = true;
         }
-        Assert.IsTrue(threw, "Expected an excpetion of InvalidOperationException on Windows");
+        Assert.IsTrue(threw, "Expected an exception of InvalidOperationException on Windows");
       } // end of if - running on Windows
       else
       {

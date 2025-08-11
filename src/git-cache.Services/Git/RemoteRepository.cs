@@ -22,7 +22,7 @@ namespace git_cache.Services.Git
     public string Server { get; set; } = null;
     /************************ Owner ******************************************/
     /// <summary>
-    /// Gets/Sets the owner of the repostiory
+    /// Gets/Sets the owner of the repository
     /// </summary>
     public string Owner { get; set; } = null;
     /************************ Name *******************************************/

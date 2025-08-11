@@ -36,7 +36,7 @@ namespace git_cache.Services.ResourceLock
     /************************ Methods ****************************************/
     /// <summary>
     /// Creates a <see cref="TLock"/> type of <see cref="IResourceLock"/>
-    /// obect.
+    /// object.
     /// </summary>
     /// <returns></returns>
     new TLock Create();

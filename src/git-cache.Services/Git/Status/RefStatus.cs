@@ -43,7 +43,7 @@ namespace git_cache.Services.Git.Status
       /// </summary>
       Pruned,
       /// <summary>
-      /// Ref was forcifully updated
+      /// Ref was forcefully updated
       /// </summary>
       ForcedUpdated,
       /// <summary>

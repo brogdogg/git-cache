@@ -100,7 +100,7 @@ namespace git_cache.Services.Git.Results
               } // end of while - still have lines to read
             } // end of using - stream reader for the source stream
           } // end of using - stream writer for the input stream
-        } // end of using - file stream writer for debuggin
+        } // end of using - file stream writer for debugging
       } // end of lambda
       );
       if (gzipStream != null) gzipStream.Dispose();

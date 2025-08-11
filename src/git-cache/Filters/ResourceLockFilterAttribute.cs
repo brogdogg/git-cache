@@ -13,7 +13,7 @@ namespace git_cache.Filters
 {
   /************************** BaseResourceLockFilterAttribute ****************/
   /// <summary>
-  /// Abstract implementation of a resoruce lock filter to use with a
+  /// Abstract implementation of a resource lock filter to use with a
   /// controller
   /// </summary>
   public abstract class BaseResourceLockFilterAttribute : Attribute

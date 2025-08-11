@@ -122,14 +122,14 @@ namespace git_cache.mstest.Filters
     public void ThrowsOnExecutionWithInvalidNext()
     {
       var filters = Substitute.For<IList<IFilterMetadata>>();
-      ResourceExecutingContext exingContext =
+      ResourceExecutingContext executingContext =
         new ResourceExecutingContext(
           m_actionContext,
           filters,
           Substitute.For<IList<IValueProviderFactory>>());
       var lockObj = new ReaderWriterLockFilterAsyncAttribute(m_mgr, m_logger, m_config,
         m_remoteStatus, m_gitContext);
-      lockObj.OnResourceExecutionAsync(exingContext, null).Wait();
+      lockObj.OnResourceExecutionAsync(executingContext, null).Wait();
     }
 
     [TestMethod]
@@ -143,7 +143,7 @@ namespace git_cache.mstest.Filters
             new ActionDescriptor(),
             new ModelStateDictionary());
 
-      ResourceExecutingContext exingContext =
+      ResourceExecutingContext executingContext =
         new ResourceExecutingContext(
           actionContext,
           filters,
@@ -153,7 +153,7 @@ namespace git_cache.mstest.Filters
         m_mgr, m_logger, m_config,
         m_remoteStatus, m_gitContext);
       var execDel = Substitute.For<ResourceExecutionDelegate>();
-      lockObj.OnResourceExecutionAsync(exingContext, execDel).Wait();
+      lockObj.OnResourceExecutionAsync(executingContext, execDel).Wait();
     }
     /* Fields ****************************************************************/
     /* Static ****************************************************************/
