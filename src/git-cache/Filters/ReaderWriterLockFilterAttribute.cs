@@ -59,10 +59,10 @@ namespace git_cache.Filters
       if (null == (Configuration = config))
         throw new ArgumentNullException(
           nameof(config), "Configuration must be a valid value");
-      if(null == (RemoteStatusService = remoteStatusSvc))
+      if (null == (RemoteStatusService = remoteStatusSvc))
         throw new ArgumentNullException(
           nameof(remoteStatusSvc), "Remote status service must be a valid value");
-      if(null == (GitContext = gitContext))
+      if (null == (GitContext = gitContext))
         throw new ArgumentNullException(
           nameof(gitContext), "A valid git context must be provided");
     } /* End of Function - ReaderWriterLockFilterAsyncAttribute */
@@ -82,7 +82,7 @@ namespace git_cache.Filters
       ResourceExecutingContext context,
       ResourceExecutionDelegate next)
     {
-      if(null == context)
+      if (null == context)
         throw new ArgumentNullException(
           nameof(context), "A valid context must be provided");
 
@@ -105,7 +105,7 @@ namespace git_cache.Filters
           var headers = context.HttpContext.Request.Headers;
           // If so, then we will get the value to use (assuming the first is
           // good enough, since there should just be one)
-          if(headers.ContainsKey("Authorization"))
+          if (headers.ContainsKey("Authorization"))
             auth = headers["Authorization"].First();
 
           var repo = GitContext.RemoteFactory.Build(context.RouteData.Values["destinationServer"].ToString(),
@@ -115,13 +115,20 @@ namespace git_cache.Filters
           var local = GitContext.LocalFactory.Build(repo, Configuration);
 
           Logger.LogInformation("Grabbing reader lock");
+          // Grab the reader lock first, as we need it to upgrade to a writer lock
           lockObj.AcquireReaderLock(timeout);
+          // Upgrade to a writer lock
+          lockObj.UpgradeToWriterLock(timeout);
           if (!IsRepositoryUpToDate(local))
           {
             Logger.LogInformation("Repository out of date, asking for writer lock");
-            //lockObj.AcquireWriterLock(timeout);
-            lockObj.UpgradeToWriterLock(timeout);
           } // end of if - out-of-date
+          else
+          {
+            Logger.LogInformation("Repository is up-to-date, continuing as a reader");
+            // If the repository is up-to-date, then we can continue as a reader
+            lockObj.DowngradeFromWriterLock();
+          }
 
           try
           {
@@ -129,14 +136,9 @@ namespace git_cache.Filters
             // upgrade to writer, to update our local values
             if (lockObj.IsWriterLockHeld)
             {
-              // If still out of date, then we will update the local one,
-              // because we are the instance stuck with the work
-              if (!IsRepositoryUpToDate(local))
-              {
-                Logger.LogInformation("We are responsible for updating the local repository");
-                GitContext.UpdateLocalAsync(local).Wait();
-                Logger.LogInformation("Local repository updated!");
-              }
+              Logger.LogInformation("We are responsible for updating the local repository");
+              GitContext.UpdateLocalAsync(local).Wait();
+              Logger.LogInformation("Local repository updated!");
               lockObj.DowngradeFromWriterLock();
             } // end of if - repository is up-to-date
 
@@ -153,10 +155,12 @@ namespace git_cache.Filters
             if (lockObj.IsWriterLockHeld)
             {
               Logger.LogInformation("Releasing the writer lock");
-              lockObj.ReleaseWriterLock();
+              lockObj.DowngradeFromWriterLock();
               Logger.LogInformation("Writer lock released");
             } // end of if - writer lock is held
-            else
+            // And we must check for a reader lock, even if we just freed a writer lock,
+            // because we only got to a writer lock by locking a reader lock first
+            if (lockObj.IsReaderLockHeld)
             {
               Logger.LogInformation("Releasing the reader lock");
               lockObj.ReleaseReaderLock();
