@@ -76,7 +76,7 @@ namespace git_cache.Services.Git.Results
       var request = context.HttpContext.Request;
       response.StatusCode = 200;
       response.ContentType = $"application/x-{Service}-result";
-      response.Headers.Add("Cache-Control", "no-cache");
+      response.Headers["Cache-Control"] = "no-cache";
       Stream stream = request.Body;
       Stream gzipStream = new GZipStream(response.Body, CompressionLevel.Optimal, true);
       if (UseGZip)
