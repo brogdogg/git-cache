@@ -118,16 +118,19 @@ namespace git_cache.Filters
           // Grab the reader lock first, as we need it to upgrade to a writer lock
           lockObj.AcquireReaderLock(timeout);
           // Upgrade to a writer lock
+          Logger.LogInformation("Upgrading to writer lock, to check repository status");
           lockObj.UpgradeToWriterLock(timeout);
-          if (!IsRepositoryUpToDate(local))
-          {
-            Logger.LogInformation("Repository out of date, asking for writer lock");
-          } // end of if - out-of-date
-          else
+          // If the repository is up-to-date, then we can continue as a reader
+          if (IsRepositoryUpToDate(local))
           {
             Logger.LogInformation("Repository is up-to-date, continuing as a reader");
             // If the repository is up-to-date, then we can continue as a reader
             lockObj.DowngradeFromWriterLock();
+          } // end of if - out-of-date
+          // Otherwise, we will need to update the repository, so keep the writer lock status
+          else
+          {
+            Logger.LogInformation("Repository is out-of-date, we will update it");
           }
 
           try
