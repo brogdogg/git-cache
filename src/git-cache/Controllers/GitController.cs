@@ -262,7 +262,7 @@ namespace git_cache.Controllers
       // Find the LFS object path in our repository to open a stream on and return
       var pathToDownload = local.LFSObjectPath(oid);
       var fs = new FileStream(pathToDownload, FileMode.Open);
-      return File(fs, "application/octect-stream", Path.GetFileName(pathToDownload));
+      return File(fs, "application/octet-stream", Path.GetFileName(pathToDownload));
     } // end of function - LFSDownload
 
     /// <summary>

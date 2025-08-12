@@ -18,7 +18,7 @@ namespace git_cache.Services.ResourceLock
     /************************ Properties *************************************/
     /*----------------------- IsReaderLockHeld ------------------------------*/
     /// <summary>
-    /// Gets a flag indicating if the current thread has a reader lock heald
+    /// Gets a flag indicating if the current thread has a reader lock held
     /// or if the upgradeable state is held.
     /// </summary>
     /// <remarks>
