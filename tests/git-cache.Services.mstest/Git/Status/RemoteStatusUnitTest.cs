@@ -13,7 +13,7 @@ namespace git_cache.Services.mstest.Git.Status
 {
   /************************** RemoteStatusUnitTest ***************************/
   /// <summary>
-  /// Tests to verify the behavings of <see cref="RemoteStatus"/> class
+  /// Tests to verify the behaviors of <see cref="RemoteStatus"/> class
   /// </summary>
   [TestClass]
   public class RemoteStatusUnitTest

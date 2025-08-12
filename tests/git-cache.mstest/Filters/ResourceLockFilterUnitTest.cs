@@ -108,20 +108,20 @@ namespace git_cache.mstest.Filters
     public void OnResourceExecutedAfterExecuting()
     {
       var filters = Substitute.For<IList<IFilterMetadata>>();
-      ResourceExecutingContext exingContext =
+      ResourceExecutingContext executingContext =
         new ResourceExecutingContext(
           m_actionContext,
           filters,
           Substitute.For<IList<IValueProviderFactory>>());
 
-      ResourceExecutedContext exedContext =
+      ResourceExecutedContext executedContext =
         new ResourceExecutedContext(
           m_actionContext,
           filters);
 
       var filter = new ResourceLockFilterAttribute(m_mgr, m_logger, m_config);
-      filter.OnResourceExecuting(exingContext);
-      filter.OnResourceExecuted(exedContext);
+      filter.OnResourceExecuting(executingContext);
+      filter.OnResourceExecuted(executedContext);
       m_lock.Received(1).Release();
     } /* End of Function - OnResourceExecutedAfterExecuting */
 

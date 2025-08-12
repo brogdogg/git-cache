@@ -92,7 +92,7 @@ namespace git_cache_mstest.Controllers
 
     /*----------------------- Initialize ------------------------------------*/
     /// <summary>
-    /// Initializes the fiels for all tests
+    /// Initializes the fields for all tests
     /// </summary>
     [TestInitialize]
     public void Initialize()

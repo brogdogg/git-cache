@@ -81,19 +81,19 @@ namespace git_cache.Services.mstest.Git
       var t = new GitContext(m_config, m_local, m_remote, m_git, null);
     } /* End of Function - ThrowsWhenInvalidGitLFSExecuter */
 
-    /*----------------------- ContructsCorrectly ----------------------------*/
+    /*----------------------- ConstructsCorrectly ---------------------------*/
     /// <summary>
     /// Verifies the context constructs correctly holding references
     /// </summary>
     [TestMethod]
-    public void ContructsCorrectly()
+    public void ConstructsCorrectly()
     {
       var t = new GitContext(m_config, m_local, m_remote, m_git, m_lfs);
       Assert.AreEqual(m_git, t.GitExecuter);
       Assert.AreEqual(m_lfs, t.LFSExecuter);
       Assert.AreEqual(m_local, t.LocalFactory);
       Assert.AreEqual(m_remote, t.RemoteFactory);
-    } /* End of Function - ContructsCorrectly */
+    } /* End of Function - ConstructsCorrectly */
 
     /*----------------------- UpdateLocalAsyncWithFailedGitFetch ------------*/
     /// <summary>

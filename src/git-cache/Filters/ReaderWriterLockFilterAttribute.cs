@@ -59,10 +59,10 @@ namespace git_cache.Filters
       if (null == (Configuration = config))
         throw new ArgumentNullException(
           nameof(config), "Configuration must be a valid value");
-      if(null == (RemoteStatusService = remoteStatusSvc))
+      if (null == (RemoteStatusService = remoteStatusSvc))
         throw new ArgumentNullException(
           nameof(remoteStatusSvc), "Remote status service must be a valid value");
-      if(null == (GitContext = gitContext))
+      if (null == (GitContext = gitContext))
         throw new ArgumentNullException(
           nameof(gitContext), "A valid git context must be provided");
     } /* End of Function - ReaderWriterLockFilterAsyncAttribute */
@@ -82,7 +82,7 @@ namespace git_cache.Filters
       ResourceExecutingContext context,
       ResourceExecutionDelegate next)
     {
-      if(null == context)
+      if (null == context)
         throw new ArgumentNullException(
           nameof(context), "A valid context must be provided");
 
@@ -90,7 +90,7 @@ namespace git_cache.Filters
         throw new ArgumentNullException(
           nameof(next), "A valid execution delegate must be provided");
 
-      return Task.Factory.StartNew(() =>
+      return Task.Factory.StartNew(async () =>
         {
           Logger.LogTrace("Enter main execution task");
           // Grab the timeout value from configuration
@@ -105,7 +105,7 @@ namespace git_cache.Filters
           var headers = context.HttpContext.Request.Headers;
           // If so, then we will get the value to use (assuming the first is
           // good enough, since there should just be one)
-          if(headers.ContainsKey("Authorization"))
+          if (headers.ContainsKey("Authorization"))
             auth = headers["Authorization"].First();
 
           var repo = GitContext.RemoteFactory.Build(context.RouteData.Values["destinationServer"].ToString(),
@@ -115,30 +115,34 @@ namespace git_cache.Filters
           var local = GitContext.LocalFactory.Build(repo, Configuration);
 
           Logger.LogInformation("Grabbing reader lock");
+          // Grab the reader lock first, as we need it to upgrade to a writer lock
           lockObj.AcquireReaderLock(timeout);
-          if (!IsRepositoryUpToDate(local))
-          {
-            Logger.LogInformation("Repository out of date, asking for writer lock");
-            //lockObj.AcquireWriterLock(timeout);
-            lockObj.UpgradeToWriterLock(timeout);
-          } // end of if - out-of-date
 
           try
           {
             // Check to see if we are out of date, if we are then
             // upgrade to writer, to update our local values
-            if (lockObj.IsWriterLockHeld)
+            if (!IsRepositoryUpToDate(local))
             {
-              // If still out of date, then we will update the local one,
-              // because we are the instance stuck with the work
+              Logger.LogInformation("Repository is out of date, upgrading to writer lock");
+              // Upgrade to a writer lock, which will block other readers
+              // and writers until we are done
+              lockObj.UpgradeToWriterLock(timeout);
+
+              // Since we were potentially in line to get the writer lock,
+              // we will check again to see if we are out of date
               if (!IsRepositoryUpToDate(local))
               {
-                Logger.LogInformation("We are responsible for updating the local repository");
-                GitContext.UpdateLocalAsync(local).Wait();
+                Logger.LogInformation("Repository is still out of date, updating...");
+                await GitContext.UpdateLocalAsync(local);
                 Logger.LogInformation("Local repository updated!");
               }
+              else
+              {
+                Logger.LogInformation("Repository already updated, no need to do anything; downgrading lock");
+              }
               lockObj.DowngradeFromWriterLock();
-            } // end of if - repository is up-to-date
+            }
 
             Logger.LogInformation("Calling through to the next step in the pipeline");
             // Allow the rest of the pipeline to continue
@@ -153,10 +157,12 @@ namespace git_cache.Filters
             if (lockObj.IsWriterLockHeld)
             {
               Logger.LogInformation("Releasing the writer lock");
-              lockObj.ReleaseWriterLock();
+              lockObj.DowngradeFromWriterLock();
               Logger.LogInformation("Writer lock released");
             } // end of if - writer lock is held
-            else
+            // And we must check for a reader lock, even if we just freed a writer lock,
+            // because we only got to a writer lock by locking a reader lock first
+            if (lockObj.IsReaderLockHeld)
             {
               Logger.LogInformation("Releasing the reader lock");
               lockObj.ReleaseReaderLock();

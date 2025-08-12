@@ -60,13 +60,13 @@ namespace git_cache.Services.mstest.IO
     [TestMethod]
     public void CanHandleStreamWithoutWrite()
     {
-      var memStrm = new MemoryStream();
-      using (var reader = StringStreamReader.StartReader(memStrm, null))
+      var memoryStream = new MemoryStream();
+      using (var reader = StringStreamReader.StartReader(memoryStream, null))
       {
         // Do nothing at this point, just want it to dispose
       } // end of using - resource
-      Assert.IsFalse(memStrm.CanRead);
-      Assert.IsFalse(memStrm.CanWrite);
+      Assert.IsFalse(memoryStream.CanRead);
+      Assert.IsFalse(memoryStream.CanWrite);
     } /* End of Function - CanHandleStreamWithoutWrite */
 
     /*----------------------- DoesNotCloseWhenToldNotTo ---------------------*/
@@ -77,14 +77,14 @@ namespace git_cache.Services.mstest.IO
     [TestMethod]
     public void DoesNotCloseWhenToldNotTo()
     {
-      using (var memStrm = new MemoryStream())
+      using (var memoryStream = new MemoryStream())
       {
-        using (var reader = StringStreamReader.StartReader(memStrm, null, false))
+        using (var reader = StringStreamReader.StartReader(memoryStream, null, false))
         {
           // Do nothing at this point, just want it to dispose
         } // end of using - resource
-        Assert.IsTrue(memStrm.CanRead);
-        Assert.IsTrue(memStrm.CanWrite);
+        Assert.IsTrue(memoryStream.CanRead);
+        Assert.IsTrue(memoryStream.CanWrite);
       } // end of using - memory stream resource
     } /* End of Function - DoesNotCloseWhenToldNotTo */
 
@@ -97,24 +97,24 @@ namespace git_cache.Services.mstest.IO
     public void SendsDataReceivedEvent()
     {
       bool called = false;
-      var memStrm = new MemoryStream();
-      memStrm.Write(new byte[] { 0, 1, 2 }, 0, 3);
-      memStrm.Flush();
-      memStrm.Position = 0;
+      var memoryStream = new MemoryStream();
+      memoryStream.Write(new byte[] { 0, 1, 2 }, 0, 3);
+      memoryStream.Flush();
+      memoryStream.Position = 0;
       using (var reader = StringStreamReader.StartReader(
-                            memStrm,
+                            memoryStream,
                             (s,e) => { called = true; },
                             false))
       {
         // Close the memory stream to force reader to exit
-        memStrm.Close();
+        memoryStream.Close();
       } // end of using - resource
       Assert.IsTrue(called);
     } /* End of Function - SendsDataReceivedEvent */
 
     /*----------------------- ThrowsWhenStreamIsInvalid ---------------------*/
     /// <summary>
-    /// Verifies the <see cref="StringStreamReader"/> contstructor throws
+    /// Verifies the <see cref="StringStreamReader"/> constructor throws
     /// exception when stream is invalid
     /// </summary>
     [TestMethod]

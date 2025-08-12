@@ -11,7 +11,7 @@ namespace git_cache.Services.ResourceLock
 {
   /************************** IReaderWriterLock ******************************/
   /// <summary>
-  /// Descibes the basics of a reader/writer lock implementation
+  /// Describes the basics of a reader/writer lock implementation
   /// </summary>
   public interface IReaderWriterLock
   {
@@ -34,7 +34,7 @@ namespace git_cache.Services.ResourceLock
     /// Attempts to acquire the reader lock in the specified amount of time.
     /// </summary>
     /// <param name="msTimeout">
-    /// Time in millseconds before timing out.
+    /// Time in milliseconds before timing out.
     /// </param>
     /// <exception cref="TimeoutException">
     /// Thrown if the reader lock is not acquired in the specified
@@ -96,7 +96,7 @@ namespace git_cache.Services.ResourceLock
     /// Time to wait before timing out
     /// </param>
     /// <exception cref="TimeoutException">
-    /// Thrown after the timespan has passed and the upgrade has not occured
+    /// Thrown after the timespan has passed and the upgrade has not occurred
     /// </exception>
     /// <exception cref="InvalidOperationException">
     /// Thrown if the reader lock is not already held and trying to upgrade

@@ -24,7 +24,7 @@ namespace git_cache.Services.mstest.Git.LFS
     /************************ Methods ****************************************/
     /*----------------------- Initialize ------------------------------------*/
     /// <summary>
-    /// Initialies the fake local repository item for testing the
+    /// Initialize the fake local repository item for testing the
     /// extension method with
     /// </summary>
     [TestInitialize]

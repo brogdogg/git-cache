@@ -24,7 +24,7 @@ namespace git_cache.Services.mstest.Git.LFS
     /************************ Methods ****************************************/
     /*----------------------- DefaultsGetsSets ------------------------------*/
     /// <summary>
-    /// Verifies the default construtor behavior and get/set
+    /// Verifies the default constructor behavior and get/set
     /// </summary>
     [TestMethod]
     public void DefaultsGetsSets()

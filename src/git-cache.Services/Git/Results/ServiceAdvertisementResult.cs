@@ -71,7 +71,7 @@ namespace git_cache.Services.Git.Results
       var response = context.HttpContext.Response;
       response.StatusCode = 200;
       response.ContentType = $"application/x-{Service}-advertisement";
-      response.Headers.Add("Cache-Control", "no-cache");
+      response.Headers["Cache-Control"] = "no-cache";
       var bytes = Encoding.UTF8.GetBytes($"001e# service={Service}\n0000");
       response.Body.Write(bytes, 0, bytes.Length);
       Shell.Execute($"{Service} --stateless-rpc --advertise-refs \"{Repository.Path}\"",

@@ -86,7 +86,7 @@ namespace git_cache.Services.Shell
     /// Functor to decide if return code is considered a failure or not
     /// </param>
     /// <param name="outStream">
-    /// Stream to recieve the stdout from the process
+    /// Stream to receive the stdout from the process
     /// </param>
     /// <param name="inputWriter">
     /// Optional input writer to provide input to stdin
@@ -117,7 +117,7 @@ namespace git_cache.Services.Shell
       // This is no good, because if there is no newline, then we will not get this
       // event. We need a custom stream reader
       process.Start();
-      // Create an async reader on the basestream of the standard output stream
+      // Create an async reader on the base stream of the standard output stream
       var stdoutReader = StartNewReader(process.StandardOutput.BaseStream,
                                         outStream);
 
