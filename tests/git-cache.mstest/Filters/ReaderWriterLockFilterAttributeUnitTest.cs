@@ -1,12 +1,13 @@
 ﻿/******************************************************************************
  * File...: ReaderWriterLockFilterAttributeUnitTest.cs
- * Remarks: 
+ * Remarks:
  */
 using git_cache.Filters;
 using git_cache.Services.Configuration;
 using git_cache.Services.Git;
 using git_cache.Services.Git.Status;
 using git_cache.Services.ResourceLock;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -15,7 +16,9 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using NSubstitute;
+
 using System;
 using System.Collections.Generic;
 
@@ -43,8 +46,8 @@ namespace git_cache.mstest.Filters
     {
       m_logger = Substitute.For<ILogger<ReaderWriterLockFilterAsyncAttribute>>();
       m_config = Substitute.For<IGitCacheConfiguration>();
-      m_mgr = Substitute.For<IReaderWriterLockManager<string>>();
-      m_lock = Substitute.For<IReaderWriterLock>();
+      m_mgr = Substitute.For<IAsyncReaderWriterLockManager<string>>();
+      m_lock = Substitute.For<IAsyncReaderWriterLock>();
       m_gitContext = Substitute.For<IGitContext>();
       m_remoteStatus = Substitute.For<IRemoteStatus>();
 
@@ -174,14 +177,14 @@ namespace git_cache.mstest.Filters
     /* Fields ****************************************************************/
     ILogger<ReaderWriterLockFilterAsyncAttribute> m_logger;
     IGitCacheConfiguration m_config;
-    IReaderWriterLockManager<string> m_mgr;
+    IAsyncReaderWriterLockManager<string> m_mgr;
     IRemoteStatus m_remoteStatus;
     IGitContext m_gitContext;
     string m_testServer = "test";
     string m_owner = "owner";
     string m_repo = "repo";
     TimeSpan m_timeout;
-    IReaderWriterLock m_lock;
+    IAsyncReaderWriterLock m_lock;
     RouteData m_routeData;
     ActionContext m_actionContext;
     /* Static ****************************************************************/

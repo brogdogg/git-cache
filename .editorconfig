@@ -8,6 +8,22 @@ indent_style = space
 indent_size = 2
 end_of_line = crlf
 charset = utf-8
-trim_trailing_whitespace = true 
+trim_trailing_whitespace = true
 insert_final_newline = true
 max_line_length = 80
+
+
+[*.cs]
+
+# Organize usings
+dotnet_sort_system_directives_first = true
+dotnet_separate_import_directive_groups = true
+
+# Place each parameter on its own line
+csharp_wrap_parameters = true
+csharp_wrap_parameters_style = true
+
+# Control how wrapping behaves
+csharp_preserve_single_line_statements = true
+csharp_preserve_single_line_blocks = true
+

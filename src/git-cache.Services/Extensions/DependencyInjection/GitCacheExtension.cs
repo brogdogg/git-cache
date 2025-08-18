@@ -1,6 +1,6 @@
 ﻿/******************************************************************************
  * File...: GitCacheExtension.cs
- * Remarks: 
+ * Remarks:
  */
 using git_cache.Services.Configuration;
 using git_cache.Services.Git;
@@ -43,6 +43,7 @@ namespace git_cache.Services.Extensions.DependencyInjection
         .AddSingleton<IGitLFSExecuter, GitLFSExecutor>()
         .AddSingleton<IGitContext, GitContext>()
         .AddResourceLocks()
+        .AddAsyncResourceLocks()
         .AddRemoteStatusService();
       return services;
     } /* End of Function - AddGitCacheServices */

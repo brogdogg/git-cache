@@ -1,6 +1,6 @@
 ﻿/******************************************************************************
  * File...: ResourceLockExtension.cs
- * Remarks: 
+ * Remarks:
  */
 using git_cache.Services.ResourceLock;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,7 +23,7 @@ namespace git_cache.Services.Extensions.DependencyInjection
     /************************ Static *****************************************/
     /*----------------------- AddResourceLocks ------------------------------*/
     /// <summary>
-    /// 
+    ///
     /// </summary>
     /// <param name="services"></param>
     public static IServiceCollection AddResourceLocks(this IServiceCollection services)
@@ -46,6 +46,20 @@ namespace git_cache.Services.Extensions.DependencyInjection
       return services;
     } /* End of Function - AddResourceLocks */
 
+    /*----------------------- AddAsyncResourceLocks -------------------------*/
+    /// <summary>
+    /// Adds the asynchronous resource lock classes to the service collection.
+    /// </summary>
+    /// <param name="services">The service collection to add the locks to.</param>
+    /// <returns>The updated service collection.</returns>
+    public static IServiceCollection AddAsyncResourceLocks(this IServiceCollection services)
+    {
+      // Add the async reader/writer lock classes to the services
+      services.AddTransient<IAsyncReaderWriterLock, AsyncReaderWriterLock>()
+              .AddSingleton(typeof(IAsyncReaderWriterLockManager<>), typeof(AsyncReaderWriterLockManager<>));
+
+      return services;
+    } /* End of Function - AddAsyncResourceLocks */
   } /* End of Class - ResourceLockExtension */
 }
 /* End of document - ResourceLockExtension.cs */
