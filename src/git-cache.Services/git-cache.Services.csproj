@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>$(NetTargetFrameworks);</TargetFrameworks>
-    <TargetPlatformMinimumVersion>$(NetCoreMinimum);</TargetPlatformMinimumVersion>
+    <TargetFramework>$(NetTargetFramework)</TargetFramework>
+    <TargetPlatformMinimumVersion>$(NetCoreMinimum)</TargetPlatformMinimumVersion>
     <RootNamespace>git_cache.Services</RootNamespace>
   </PropertyGroup>
 
