@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <LangVersion>9.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup>
@@ -11,12 +11,11 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <NetCoreCurrentVersion Condition="'$(MSBuildVersion)' &gt;= 17.0.0">8.0</NetCoreCurrentVersion>
-    <NetCoreCurrentVersion Condition="'$(MSBuildVersion)' &lt; 17.0.0">5.0</NetCoreCurrentVersion>
+    <NetCoreCurrentVersion>8.0</NetCoreCurrentVersion>
     <NetCoreMinimumVersion>8.0</NetCoreMinimumVersion>
     <NetCoreCurrent>net$(NetCoreCurrentVersion)</NetCoreCurrent>
     <NetCoreMinimum>net$(NetCoreMinimumVersion)</NetCoreMinimum>
-    <NetTargetFrameworks>$(NetCoreCurrent);</NetTargetFrameworks>
+    <NetTargetFramework>$(NetCoreCurrent)</NetTargetFramework>
   </PropertyGroup>
 
   <!-- Deterministic build support -->
