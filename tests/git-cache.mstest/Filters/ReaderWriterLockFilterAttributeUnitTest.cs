@@ -1,4 +1,4 @@
-﻿/******************************************************************************
+/******************************************************************************
  * File...: ReaderWriterLockFilterAttributeUnitTest.cs
  * Remarks:
  */
@@ -21,6 +21,8 @@ using NSubstitute;
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace git_cache.mstest.Filters
 {
@@ -32,12 +34,12 @@ namespace git_cache.mstest.Filters
   [TestClass]
   public class ReaderWriterLockFilterAttributeUnitTest
   {
-    /* PUBLIC ===============================================================*/
-    /* Events ****************************************************************/
-    /* Properties ************************************************************/
-    /* Construction **********************************************************/
-    /* Methods ***************************************************************/
-    /* Initialize -----------------------------------------------------------*/
+    /*======================= PUBLIC ========================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+    /*----------------------- Initialize ------------------------------------*/
     /// <summary>
     /// Initializer for the test cases
     /// </summary>
@@ -47,9 +49,11 @@ namespace git_cache.mstest.Filters
       m_logger = Substitute.For<ILogger<ReaderWriterLockFilterAsyncAttribute>>();
       m_config = Substitute.For<IGitCacheConfiguration>();
       m_mgr = Substitute.For<IAsyncReaderWriterLockManager<string>>();
-      m_lock = Substitute.For<IAsyncReaderWriterLock>();
       m_gitContext = Substitute.For<IGitContext>();
       m_remoteStatus = Substitute.For<IRemoteStatus>();
+      m_lock = Substitute.For<IAsyncReaderWriterLock>();
+      m_lock.ReaderLockAsync(Arg.Any<TimeSpan>())
+        .Returns(new ValueTask<IAsyncDisposable>(Substitute.For<IAsyncDisposable>()));
 
       m_mgr.GetFor($"{m_testServer}_{m_owner}_{m_repo}")
            .Returns(m_lock);
@@ -112,16 +116,15 @@ namespace git_cache.mstest.Filters
     } /* End of Function - ThrowsForInvalidConfig */
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ThrowsOnExecutionWithInvalidContext()
     {
       var lockObj = new ReaderWriterLockFilterAsyncAttribute(m_mgr, m_logger, m_config,
         m_remoteStatus, m_gitContext);
-      lockObj.OnResourceExecutionAsync(null, Substitute.For<ResourceExecutionDelegate>()).Wait();
+      var exc = Assert.ThrowsException<AggregateException>(() => lockObj.OnResourceExecutionAsync(null, Substitute.For<ResourceExecutionDelegate>()).Wait());
+      Assert.IsTrue(exc.InnerExceptions.Any(e => e is ArgumentNullException));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ThrowsOnExecutionWithInvalidNext()
     {
       var filters = Substitute.For<IList<IFilterMetadata>>();
@@ -132,7 +135,8 @@ namespace git_cache.mstest.Filters
           Substitute.For<IList<IValueProviderFactory>>());
       var lockObj = new ReaderWriterLockFilterAsyncAttribute(m_mgr, m_logger, m_config,
         m_remoteStatus, m_gitContext);
-      lockObj.OnResourceExecutionAsync(executingContext, null).Wait();
+      var exc = Assert.ThrowsException<AggregateException>(() => lockObj.OnResourceExecutionAsync(executingContext, null).Wait());
+      Assert.IsTrue(exc.InnerExceptions.Any(e => e is ArgumentNullException));
     }
 
     [TestMethod]

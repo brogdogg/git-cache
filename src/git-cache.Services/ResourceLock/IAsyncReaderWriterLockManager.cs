@@ -1,4 +1,4 @@
-﻿/******************************************************************************
+/******************************************************************************
  * File...: IAsyncReaderWriterLockManager.cs
  * Remarks:
  */
@@ -10,21 +10,9 @@ namespace git_cache.Services.ResourceLock
 {
   /************************** IAsyncReaderWriterLockManager ******************/
   /// <summary>
-  /// Async reader/writer resource lock manager
-  /// </summary>
-  public interface IAsyncReaderWriterLockManager : IDisposable
-  {
-    /************************ Events *****************************************/
-    /************************ Properties *************************************/
-    /************************ Methods ****************************************/
-  } /* End of Interface - IAsyncReaderWriterLockManager */
-
-
-  /************************** IAsyncReaderWriterLockManager ******************/
-  /// <summary>
   /// Async reader/writer resource lock manager, with the key type specified
   /// </summary>
-  public interface IAsyncReaderWriterLockManager<in TKey> : IAsyncReaderWriterLockManager
+  public interface IAsyncReaderWriterLockManager<in TKey>
   {
     /************************ Events *****************************************/
     /************************ Properties *************************************/

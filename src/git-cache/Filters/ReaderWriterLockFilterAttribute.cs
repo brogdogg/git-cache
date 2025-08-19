@@ -1,4 +1,4 @@
-﻿/******************************************************************************
+/******************************************************************************
  * File...: ReaderWriterLockFilterAttribute.cs
  * Remarks:
  */
@@ -152,7 +152,8 @@ namespace git_cache.Filters
       } // end of try - to execute the job
       finally
       {
-        await reader_lock.DisposeAsync();
+        if (reader_lock != null)
+          await reader_lock.DisposeAsync();
       } // end of finally
       lockObj = null;
       Logger.LogTrace("Exit main execution task");

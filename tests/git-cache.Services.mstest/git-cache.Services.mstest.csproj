@@ -22,4 +22,8 @@
     <ProjectReference Include="$(SrcDirectory)\git-cache.Services\git-cache.Services.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ResourceLock\" />
+  </ItemGroup>
+
 </Project>
