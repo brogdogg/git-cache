@@ -1,6 +1,6 @@
-﻿/******************************************************************************
+/******************************************************************************
  * File...: ReaderWriterLockFilterAttribute.cs
- * Remarks: 
+ * Remarks:
  */
 using git_cache.Services.Configuration;
 using git_cache.Services.Git;
@@ -44,7 +44,7 @@ namespace git_cache.Filters
     /// Service for getting the reference status
     /// </param>
     public ReaderWriterLockFilterAsyncAttribute(
-      IReaderWriterLockManager<string> lockManager,
+      IAsyncReaderWriterLockManager<string> lockManager,
       ILogger<ReaderWriterLockFilterAsyncAttribute> logger,
       IGitCacheConfiguration config,
       IRemoteStatus remoteStatusSvc,
@@ -78,7 +78,7 @@ namespace git_cache.Filters
     /// This method does not use the async keyword, due to `await` to possibly
     /// change the thread we are executing on, causing problems with the locks.
     /// </remarks>
-    public Task OnResourceExecutionAsync(
+    public async Task OnResourceExecutionAsync(
       ResourceExecutingContext context,
       ResourceExecutionDelegate next)
     {
@@ -90,87 +90,73 @@ namespace git_cache.Filters
         throw new ArgumentNullException(
           nameof(next), "A valid execution delegate must be provided");
 
-      return Task.Factory.StartNew(async () =>
+      Logger.LogTrace("Enter main execution task");
+      // Grab the timeout value from configuration
+      var timeout = GetWaitTimeSpan();
+      Logger.LogInformation($"Got a timeout from configuration: {timeout}");
+      Logger.LogInformation($"  In milliseconds: {timeout.TotalMilliseconds}");
+      // Get a lock object associated with the resource key
+      var lockObj = Manager.GetFor(GetResourceKey(context));
+
+      string auth = null;
+      // Will look in the headers for an "Authentication" record
+      var headers = context.HttpContext.Request.Headers;
+      // If so, then we will get the value to use (assuming the first is
+      // good enough, since there should just be one)
+      if (headers.ContainsKey("Authorization"))
+        auth = headers["Authorization"].First();
+
+      var repo = GitContext.RemoteFactory.Build(context.RouteData.Values["destinationServer"].ToString(),
+                                                context.RouteData.Values["repositoryOwner"].ToString(),
+                                                context.RouteData.Values["repository"].ToString(),
+                                                auth);
+      var local = GitContext.LocalFactory.Build(repo, Configuration);
+
+      Logger.LogInformation("Grabbing reader lock");
+      // Grab the reader lock first, as we need it to upgrade to a writer lock
+      var reader_lock = await lockObj.ReaderLockAsync(timeout);
+
+      try
+      {
+        // Check to see if we are out of date, if we are then
+        // upgrade to writer, to update our local values
+        if (!IsRepositoryUpToDate(local))
         {
-          Logger.LogTrace("Enter main execution task");
-          // Grab the timeout value from configuration
-          var timeout = GetWaitTimeSpan();
-          Logger.LogInformation($"Got a timeout from configuration: {timeout}");
-          Logger.LogInformation($"  In milliseconds: {timeout.TotalMilliseconds}");
-          // Get a lock object associated with the resource key
-          var lockObj = Manager.GetFor(GetResourceKey(context));
-
-          string auth = null;
-          // Will look in the headers for an "Authentication" record
-          var headers = context.HttpContext.Request.Headers;
-          // If so, then we will get the value to use (assuming the first is
-          // good enough, since there should just be one)
-          if (headers.ContainsKey("Authorization"))
-            auth = headers["Authorization"].First();
-
-          var repo = GitContext.RemoteFactory.Build(context.RouteData.Values["destinationServer"].ToString(),
-                                                    context.RouteData.Values["repositoryOwner"].ToString(),
-                                                    context.RouteData.Values["repository"].ToString(),
-                                                    auth);
-          var local = GitContext.LocalFactory.Build(repo, Configuration);
-
-          Logger.LogInformation("Grabbing reader lock");
-          // Grab the reader lock first, as we need it to upgrade to a writer lock
-          lockObj.AcquireReaderLock(timeout);
-
-          try
+          Logger.LogInformation("Repository is out of date, upgrading to writer lock");
+          await reader_lock.DisposeAsync();
+          // Upgrade to a writer lock, which will block other readers
+          // and writers until we are done
+          await using (var writer_lock = await lockObj.WriterLockAsync(timeout))
           {
-            // Check to see if we are out of date, if we are then
-            // upgrade to writer, to update our local values
+            // Since we were potentially in line to get the writer lock,
+            // we will check again to see if we are out of date
             if (!IsRepositoryUpToDate(local))
             {
-              Logger.LogInformation("Repository is out of date, upgrading to writer lock");
-              // Upgrade to a writer lock, which will block other readers
-              // and writers until we are done
-              lockObj.UpgradeToWriterLock(timeout);
-
-              // Since we were potentially in line to get the writer lock,
-              // we will check again to see if we are out of date
-              if (!IsRepositoryUpToDate(local))
-              {
-                Logger.LogInformation("Repository is still out of date, updating...");
-                await GitContext.UpdateLocalAsync(local);
-                Logger.LogInformation("Local repository updated!");
-              }
-              else
-              {
-                Logger.LogInformation("Repository already updated, no need to do anything; downgrading lock");
-              }
-              lockObj.DowngradeFromWriterLock();
+              Logger.LogInformation("Repository is still out of date, updating...");
+              await GitContext.UpdateLocalAsync(local);
+              Logger.LogInformation("Local repository updated!");
             }
-
-            Logger.LogInformation("Calling through to the next step in the pipeline");
-            // Allow the rest of the pipeline to continue
-            next().Wait();
-
-            Logger.LogInformation("Next action has finished, continue to release locks");
-          } // end of try - to execute the job
-          finally
-          {
-            // If we were holding the writer lock, release it
-            // first
-            if (lockObj.IsWriterLockHeld)
+            else
             {
-              Logger.LogInformation("Releasing the writer lock");
-              lockObj.DowngradeFromWriterLock();
-              Logger.LogInformation("Writer lock released");
-            } // end of if - writer lock is held
-            // And we must check for a reader lock, even if we just freed a writer lock,
-            // because we only got to a writer lock by locking a reader lock first
-            if (lockObj.IsReaderLockHeld)
-            {
-              Logger.LogInformation("Releasing the reader lock");
-              lockObj.ReleaseReaderLock();
-            } // end of else - reader lock
-          } // end of finally
-          lockObj = null;
-          Logger.LogTrace("Exit main execution task");
-        }); // end of task
+              Logger.LogInformation("Repository already updated, no need to do anything; downgrading lock");
+            }
+          }
+          reader_lock = await lockObj.ReaderLockAsync(timeout);
+        }
+
+        Logger.LogInformation("Calling through to the next step in the pipeline");
+        // Allow the rest of the pipeline to continue
+        next().Wait();
+
+        Logger.LogInformation("Next action has finished, continue to release locks");
+      } // end of try - to execute the job
+      finally
+      {
+        if (reader_lock != null)
+          await reader_lock.DisposeAsync();
+      } // end of finally
+      lockObj = null;
+      Logger.LogTrace("Exit main execution task");
     } /* End of Function - OnResourceExecutionAsync */
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
@@ -189,7 +175,7 @@ namespace git_cache.Filters
     /// <summary>
     /// Gets the reader/writer lock manager for getting locks for resources
     /// </summary>
-    protected IReaderWriterLockManager<string> Manager { get; }
+    protected IAsyncReaderWriterLockManager<string> Manager { get; }
     /// <summary>
     /// Gets the <see cref="IRemoteStatus"/> object, for checking the status
     /// of branches

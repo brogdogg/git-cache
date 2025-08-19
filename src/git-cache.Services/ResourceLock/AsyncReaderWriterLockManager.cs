@@ -1,48 +1,49 @@
 ﻿/******************************************************************************
- * File...: ReaderWriterLockManager.cs
- * Remarks: 
+ * File...: AsyncReaderWriterLockManager.cs
+ * Remarks: Concrete implementation of the IAsyncReaderWriterLockManager
+ *          interface.
  */
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 
 namespace git_cache.Services.ResourceLock
 {
-  /************************** ReaderWriterLockManager ************************/
+  /************************** AsyncReaderWriterLockManager *******************/
   /// <summary>
-  /// Implementation of the <see cref="IReaderWriterLockManager{TKey}"/>
+  /// Implementation of the <see cref="IAsyncReaderWriterLockManager{TKey}"/>
   /// interface
   /// </summary>
-  public class ReaderWriterLockManager<TKey>
-    : DisposableBase, IReaderWriterLockManager<TKey>
+  public class AsyncReaderWriterLockManager<TKey>
+    : DisposableBase, IAsyncReaderWriterLockManager<TKey>
   {
     /*======================= PUBLIC ========================================*/
     /************************ Events *****************************************/
     /************************ Properties *************************************/
     /************************ Construction ***********************************/
-    /*----------------------- ReaderWriterLockManager -----------------------*/
+    /*----------------------- AsyncReaderWriterLockManager ------------------*/
     /// <summary>
     /// Constructor
     /// </summary>
-    /// <param name="factory">Factory to generate lock objects</param>
+    /// <param name="serviceProvider">Service provider to resolve dependencies</param>
     /// <param name="logger">Logger object tied to this instance</param>
-    public ReaderWriterLockManager(IReaderWriterLockFactory factory, ILogger<ReaderWriterLockManager<TKey>> logger)
+    public AsyncReaderWriterLockManager(
+      IServiceProvider serviceProvider,
+      ILogger<AsyncReaderWriterLockManager<TKey>> logger)
     {
-      if (null == (m_logger = logger))
-        throw new ArgumentNullException(
-          nameof(logger), "Must provide a valid logger class");
-      if (null == (m_factory = factory))
-        throw new ArgumentNullException(
-          nameof(factory), "Must provide a valid factory class");
-    } /* End of Function - ReaderWriterLockManager */
+      m_logger = logger ?? throw new ArgumentNullException(nameof(logger));
+      m_serviceProvider = serviceProvider
+        ?? throw new ArgumentNullException(nameof(serviceProvider));
+    } /* End of Function - AsyncReaderWriterLockManager */
 
     /************************ Methods ****************************************/
     /*----------------------- GetFor ----------------------------------------*/
     /// <inheritdoc />
-    public IReaderWriterLock GetFor(TKey key)
+    public IAsyncReaderWriterLock GetFor(TKey key)
     {
       m_logger.LogInformation($"Getting resource lock for key: {key}");
-      IReaderWriterLock retval = null;
+      IAsyncReaderWriterLock retval = null;
       lock (m_lock)
       {
         // Check to see if we have an item already for this
@@ -57,7 +58,7 @@ namespace git_cache.Services.ResourceLock
         else
         {
           m_logger.LogInformation("Creating a new reader/writer lock resource for given key");
-          retval = m_factory.Create();
+          retval = m_serviceProvider.GetRequiredService<IAsyncReaderWriterLock>();
           m_readerWriters.Add(key, retval);
         } // end of else - new item
       } // end of lock - on resource
@@ -78,7 +79,7 @@ namespace git_cache.Services.ResourceLock
     {
       lock (m_lock)
       {
-        if(null != m_readerWriters)
+        if (null != m_readerWriters)
         {
           m_readerWriters.Clear();
           m_readerWriters = null;
@@ -95,11 +96,11 @@ namespace git_cache.Services.ResourceLock
     /************************ Methods ****************************************/
     /************************ Fields *****************************************/
     private readonly object m_lock = new object();
-    private readonly ILogger<ReaderWriterLockManager<TKey>> m_logger = null;
-    private Dictionary<TKey, IReaderWriterLock> m_readerWriters
-      = new Dictionary<TKey, IReaderWriterLock>();
-    private readonly IReaderWriterLockFactory m_factory = null;
+    private readonly ILogger<AsyncReaderWriterLockManager<TKey>> m_logger = null;
+    private Dictionary<TKey, IAsyncReaderWriterLock> m_readerWriters
+      = new Dictionary<TKey, IAsyncReaderWriterLock>();
+    private readonly IServiceProvider m_serviceProvider;
     /************************ Static *****************************************/
-  } /* End of Class - ReaderWriterLockManager */
+  } /* End of Class - AsyncReaderWriterLockManager */
 }
-/* End of document - ReaderWriterLockManager.cs */
+/* End of document - AsyncReaderWriterLockManager.cs */

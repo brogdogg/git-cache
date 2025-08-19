@@ -1,12 +1,13 @@
-﻿/******************************************************************************
+/******************************************************************************
  * File...: ReaderWriterLockFilterAttributeUnitTest.cs
- * Remarks: 
+ * Remarks:
  */
 using git_cache.Filters;
 using git_cache.Services.Configuration;
 using git_cache.Services.Git;
 using git_cache.Services.Git.Status;
 using git_cache.Services.ResourceLock;
+
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Abstractions;
@@ -15,9 +16,13 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+
 using NSubstitute;
+
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace git_cache.mstest.Filters
 {
@@ -29,12 +34,12 @@ namespace git_cache.mstest.Filters
   [TestClass]
   public class ReaderWriterLockFilterAttributeUnitTest
   {
-    /* PUBLIC ===============================================================*/
-    /* Events ****************************************************************/
-    /* Properties ************************************************************/
-    /* Construction **********************************************************/
-    /* Methods ***************************************************************/
-    /* Initialize -----------------------------------------------------------*/
+    /*======================= PUBLIC ========================================*/
+    /************************ Events *****************************************/
+    /************************ Properties *************************************/
+    /************************ Construction ***********************************/
+    /************************ Methods ****************************************/
+    /*----------------------- Initialize ------------------------------------*/
     /// <summary>
     /// Initializer for the test cases
     /// </summary>
@@ -43,10 +48,12 @@ namespace git_cache.mstest.Filters
     {
       m_logger = Substitute.For<ILogger<ReaderWriterLockFilterAsyncAttribute>>();
       m_config = Substitute.For<IGitCacheConfiguration>();
-      m_mgr = Substitute.For<IReaderWriterLockManager<string>>();
-      m_lock = Substitute.For<IReaderWriterLock>();
+      m_mgr = Substitute.For<IAsyncReaderWriterLockManager<string>>();
       m_gitContext = Substitute.For<IGitContext>();
       m_remoteStatus = Substitute.For<IRemoteStatus>();
+      m_lock = Substitute.For<IAsyncReaderWriterLock>();
+      m_lock.ReaderLockAsync(Arg.Any<TimeSpan>())
+        .Returns(new ValueTask<IAsyncDisposable>(Substitute.For<IAsyncDisposable>()));
 
       m_mgr.GetFor($"{m_testServer}_{m_owner}_{m_repo}")
            .Returns(m_lock);
@@ -109,16 +116,15 @@ namespace git_cache.mstest.Filters
     } /* End of Function - ThrowsForInvalidConfig */
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ThrowsOnExecutionWithInvalidContext()
     {
       var lockObj = new ReaderWriterLockFilterAsyncAttribute(m_mgr, m_logger, m_config,
         m_remoteStatus, m_gitContext);
-      lockObj.OnResourceExecutionAsync(null, Substitute.For<ResourceExecutionDelegate>()).Wait();
+      var exc = Assert.ThrowsException<AggregateException>(() => lockObj.OnResourceExecutionAsync(null, Substitute.For<ResourceExecutionDelegate>()).Wait());
+      Assert.IsTrue(exc.InnerExceptions.Any(e => e is ArgumentNullException));
     }
 
     [TestMethod]
-    [ExpectedException(typeof(ArgumentNullException))]
     public void ThrowsOnExecutionWithInvalidNext()
     {
       var filters = Substitute.For<IList<IFilterMetadata>>();
@@ -129,7 +135,8 @@ namespace git_cache.mstest.Filters
           Substitute.For<IList<IValueProviderFactory>>());
       var lockObj = new ReaderWriterLockFilterAsyncAttribute(m_mgr, m_logger, m_config,
         m_remoteStatus, m_gitContext);
-      lockObj.OnResourceExecutionAsync(executingContext, null).Wait();
+      var exc = Assert.ThrowsException<AggregateException>(() => lockObj.OnResourceExecutionAsync(executingContext, null).Wait());
+      Assert.IsTrue(exc.InnerExceptions.Any(e => e is ArgumentNullException));
     }
 
     [TestMethod]
@@ -174,14 +181,14 @@ namespace git_cache.mstest.Filters
     /* Fields ****************************************************************/
     ILogger<ReaderWriterLockFilterAsyncAttribute> m_logger;
     IGitCacheConfiguration m_config;
-    IReaderWriterLockManager<string> m_mgr;
+    IAsyncReaderWriterLockManager<string> m_mgr;
     IRemoteStatus m_remoteStatus;
     IGitContext m_gitContext;
     string m_testServer = "test";
     string m_owner = "owner";
     string m_repo = "repo";
     TimeSpan m_timeout;
-    IReaderWriterLock m_lock;
+    IAsyncReaderWriterLock m_lock;
     RouteData m_routeData;
     ActionContext m_actionContext;
     /* Static ****************************************************************/

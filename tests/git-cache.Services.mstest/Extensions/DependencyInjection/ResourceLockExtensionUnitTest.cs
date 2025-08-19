@@ -1,10 +1,10 @@
-﻿/******************************************************************************
+/******************************************************************************
  * File...: ResourceLockExtensionUnitTest.cs
- * Remarks: 
+ * Remarks: Unit tests for the resource lock extension DI extensions.
  */
-using System;
 using git_cache.Services.Extensions.DependencyInjection;
 using git_cache.Services.ResourceLock;
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -25,75 +25,28 @@ namespace git_cache.Services.mstest.Extensions.DependencyInjection
     /************************ Methods ****************************************/
     /*----------------------- AddResourceLocks ------------------------------*/
     /// <summary>
-    /// Verifies the correct services are added for resource locks
+    /// Verifies the correct services are added for async resource reader/writer
     /// </summary>
     [TestMethod]
-    public void AddResourceLocks()
+    public void AddAsyncResourceLocks()
     {
       // SETUP
       // ACT
-      Services.AddResourceLocks();
+      Services.AddAsyncResourceLocks();
       var serviceProvider = Services.BuildServiceProvider();
 
       // VERIFY
       Assert.IsInstanceOfType(
-        serviceProvider.GetService<IResourceLockFactory>(),
-        typeof(ResourceLockFactory<Services.ResourceLock.ResourceLock>));
-
-      Assert.IsInstanceOfType(
-        serviceProvider.GetService<IResourceLockManager<string>>(),
-        typeof(ResourceLockManager<string>));
-
-      Assert.IsInstanceOfType(
-        serviceProvider.GetService<IResourceLockFactory<FakeResourceLock>>(),
-        typeof(ResourceLockFactory<FakeResourceLock>));
+        serviceProvider.GetService<IAsyncReaderWriterLockManager<string>>(),
+        typeof(AsyncReaderWriterLockManager<string>));
 
       // Verify the reader/writer lock adds.
       Assert.IsInstanceOfType(
-        serviceProvider.GetService<IReaderWriterLockFactory>(),
-        typeof(ReaderWriterLockFactory<Services.ResourceLock.ReaderWriterLockSlim>));
-
-      Assert.IsInstanceOfType(
-        serviceProvider.GetService<IReaderWriterLockManager<string>>(),
-        typeof(ReaderWriterLockManager<string>));
-
-      Assert.IsInstanceOfType(
-        serviceProvider.GetService<IResourceLockFactory<FakeResourceLock>>(),
-        typeof(ResourceLockFactory<FakeResourceLock>));
+        serviceProvider.GetService<IAsyncReaderWriterLock>(),
+        typeof(AsyncReaderWriterLock));
     } /* End of Function - AddResourceLocks */
     /************************ Fields *****************************************/
     /************************ Static *****************************************/
-
-    /*======================= PROTECTED =====================================*/
-    /************************ Events *****************************************/
-    /************************ Properties *************************************/
-    /************************ Construction ***********************************/
-    /************************ Methods ****************************************/
-    /************************ Fields *****************************************/
-    /************************ Static *****************************************/
-
-    /*======================= PRIVATE =======================================*/
-    /************************ Events *****************************************/
-    /************************ Properties *************************************/
-    /************************ Construction ***********************************/
-    /************************ Methods ****************************************/
-    /************************ Fields *****************************************/
-    /************************ Static *****************************************/
-    /************************ Types ******************************************/
-
-    /************************ FakeResourceLock *******************************/
-    /// <summary>
-    /// Fake class for testing
-    /// </summary>
-    public class FakeResourceLock : IResourceLock
-    {
-      public void Dispose() => throw new NotImplementedException();
-      public void Release() => throw new NotImplementedException();
-      public bool WaitOne() => throw new NotImplementedException();
-      public bool WaitOne(int milliseconds) => throw new NotImplementedException();
-      public bool WaitOne(TimeSpan timeout) => throw new NotImplementedException();
-    } /* End of Class - FakeResourceLock */
-
   } /* End of Class - ResourceLockExtensionUnitTest */
 }
 /* End of document - ResourceLockExtensionUnitTest.cs */
