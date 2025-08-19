@@ -1,11 +1,7 @@
 /******************************************************************************
  * File...: IAsyncReaderWriterLockManager.cs
- * Remarks:
+ * Remarks: Definition of the async reader/writer lock manager interface.
  */
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 namespace git_cache.Services.ResourceLock
 {
   /************************** IAsyncReaderWriterLockManager ******************/
