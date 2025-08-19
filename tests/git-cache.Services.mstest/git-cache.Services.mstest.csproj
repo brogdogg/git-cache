@@ -12,6 +12,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="coverlet.collector" Version="6.0.4">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.0.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.2.8" />
     <PackageReference Include="MSTest.TestFramework" Version="2.2.8" />
@@ -20,10 +24,6 @@
 
   <ItemGroup>
     <ProjectReference Include="$(SrcDirectory)\git-cache.Services\git-cache.Services.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="ResourceLock\" />
   </ItemGroup>
 
 </Project>

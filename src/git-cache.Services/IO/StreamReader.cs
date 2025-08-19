@@ -1,4 +1,4 @@
-﻿/******************************************************************************
+/******************************************************************************
  * File...: StreamReader.cs
  * Remarks: 
  */
@@ -176,9 +176,10 @@ namespace git_cache.Services.IO
     /// </param>
     protected virtual void Dispose(bool disposing)
     {
-      if (!CancelTokenSource.IsCancellationRequested)
+      var tokenSource = CancelTokenSource;
+      if (null != tokenSource && !tokenSource.IsCancellationRequested)
       {
-        CancelTokenSource.Cancel();
+        tokenSource.Cancel();
       } // end of if - cancel has not already be requested
       try
       {
@@ -197,7 +198,7 @@ namespace git_cache.Services.IO
           BaseStream.Close();
           BaseStream.Dispose();
         } // end of if - we should close the base stream
-        CancelTokenSource.Dispose();
+        tokenSource.Dispose();
       } // end of if - explicitly disposing
       BaseStream = null;
       CancelTokenSource = null;
